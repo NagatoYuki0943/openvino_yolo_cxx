@@ -26,7 +26,7 @@ namespace yolo
 
     class OpenvinoYolo11DetInference
     {
-    public:
+    private:
         ov::Core _core;
         ov::CompiledModel _compiled_model;   // OpenVINO compiled model
         ov::InferRequest _inference_request; // OpenVINO inference request
@@ -45,6 +45,7 @@ namespace yolo
             "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase",
             "scissors", "teddy bear", "hair drier", "toothbrush"};
 
+    public:
         void InitializeModel(
             const std::string &model_path,
             const cv::Size &model_input_shape = cv::Size(640, 640))
