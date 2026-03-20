@@ -81,12 +81,23 @@ namespace yolo
 
             // Preprocessing setup for the model
             ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
-            // ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::BGR);
-            ppp.input().tensor().set_element_type(ov::element::u8).set_layout("NHWC").set_color_format(ov::preprocess::ColorFormat::RGB);
-            // ppp.input().preprocess().convert_element_type(ov::element::f32).convert_color(ov::preprocess::ColorFormat::RGB).scale({255, 255, 255});
-            ppp.input().preprocess().convert_element_type(ov::element::f32).scale({255, 255, 255});
-            ppp.input().model().set_layout("NCHW");
-            ppp.output().tensor().set_element_type(ov::element::f32);
+            ppp.input()
+                .tensor()
+                .set_element_type(ov::element::u8)
+                .set_layout("NHWC")
+                .set_color_format(ov::preprocess::ColorFormat::BGR);
+            ppp.input()
+                .preprocess()
+                .convert_color(ov::preprocess::ColorFormat::RGB)
+                // .convert_layout("NCHW")
+                .convert_element_type(ov::element::f32)
+                .scale({255, 255, 255});
+            ppp.input()
+                .model()
+                .set_layout("NCHW");
+            ppp.output()
+                .tensor()
+                .set_element_type(ov::element::f32);
             model = ppp.build(); // Build the preprocessed model
 
             // Compile the model for inference
@@ -183,16 +194,18 @@ namespace yolo
             std::vector<int> class_list;
             std::vector<float> confidence_list;
             std::vector<cv::Rect> box_list;
-            std::vector<cv::Rect> nms_box_list; // 【新增】专门用于 NMS 的带偏移量框列表
+            std::vector<cv::Rect> nms_box_list; // 专门用于 NMS 的带偏移量框列表
 
             // 1. 获取原始的 84 x 8400 矩阵
             // 8400 列：代表模型预测出的 8400 个候选框（Anchors）。
             // 84 行：代表每个候选框的 84 个属性。前 4 个是中心点坐标和宽高 (cx,cy,w,h)，后 80 个是该框属于 80 个类别的得分。
             const float *detections = this->_inference_request.get_output_tensor().data<const float>();
-            const cv::Mat detection_outputs(this->_model_output_shape, CV_32F, (float *)detections); // Create OpenCV imagerix from output tensor
+            // Create OpenCV imagerix from output tensor
+            // clone 是因为 cv::Mat 使用指针创建 Mat 时没有拷贝数据, 所以这里需要 clone 一份数据
+            const cv::Mat detection_outputs = cv::Mat(this->_model_output_shape, CV_32F, (float *)detections).clone();
             std::cout << "detection_outputs shape(wxh): " << detection_outputs.size() << std::endl;
 
-            // 【新增】设定一个足够大的常量作为偏移基数 (通常 YOLO 输入是 640 或 1280，4096 绝对够用)
+            // 设定一个足够大的常量作为偏移基数 (通常 YOLO 输入是 640 或 1280，4096 绝对够用)
             const int max_wh = 4096;
 
             // 2. 将其转置为 8400 x 84 (行数变成 8400，列数变成 84)
@@ -232,7 +245,7 @@ namespace yolo
                     box.height = static_cast<int>(h);
                     box_list.push_back(box);
 
-                    // 2. 【新增】生成带偏移量的框（仅用于送入 NMS 函数）
+                    // 2. 生成带偏移量的框（仅用于送入 NMS 函数）
                     cv::Rect nms_box;
                     nms_box.x = box.x + class_id.y * max_wh;
                     nms_box.y = box.y + class_id.y * max_wh;
@@ -258,7 +271,7 @@ namespace yolo
                 result.class_name = this->_classes[result.class_id];
                 result.confidence = confidence_list[id];
 
-                // 【注意】这里依然使用未加偏移量的真实 box_list[id] 来还原坐标
+                // 这里依然使用未加偏移量的真实 box_list[id] 来还原坐标
                 auto box = GetBoundingBox(box_list[id], scale_factor, original_shape);
                 result.left = box[0];
                 result.top = box[1];

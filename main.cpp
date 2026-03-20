@@ -14,7 +14,6 @@ int main(int argc, char *argv[])
     std::cout << "argc: " << argc << std::endl;
     std::cout << "program name: " << argv[0] << std::endl;
 
-
     std::string image_path = "../../../images/bus.jpg";
     if (!fs::exists(image_path))
     {
@@ -39,8 +38,6 @@ int main(int argc, char *argv[])
     // cv::imshow("image", image);
     // cv::waitKey(0);
 
-    cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-
     // Define the confidence and NMS thresholds
     const float confidence_threshold = 0.25;
     const float NMS_threshold = 0.5;
@@ -64,7 +61,6 @@ int main(int argc, char *argv[])
     }
 
     cv::Mat draw_image = image.clone();
-    cv::cvtColor(draw_image, draw_image, cv::COLOR_RGB2BGR);
     inference.DrawDetectedObject(draw_image, detect_results);
 
     // Display the image with the detections
