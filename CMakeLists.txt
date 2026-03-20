@@ -60,7 +60,7 @@ endif()
 set(SOURCES
     main
     "main.cpp"
-    "openvino_yolo11_det_inference.hpp"
+    "src/yolo/openvino_yolo11_det_inference.hpp"
 )
 
 # 添加可执行文件

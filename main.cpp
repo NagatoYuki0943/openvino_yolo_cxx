@@ -4,8 +4,7 @@
 #include <fstream>
 #include <filesystem>
 #include <opencv2/opencv.hpp>
-#include "main.h"
-#include "openvino_yolo11_det_inference.hpp"
+#include "src/yolo/openvino_yolo11_det_inference.hpp"
 
 namespace fs = std::filesystem;
 
