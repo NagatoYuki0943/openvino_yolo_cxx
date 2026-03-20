@@ -1,7 +1,7 @@
 // Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-#ifndef YOLO11_OPENVINO_INFER_HPP
-#define YOLO11_OPENVINO_INFER_HPP
+#ifndef OPENVINO_YOLO11_DET_INFER_HPP
+#define OPENVINO_YOLO11_DET_INFER_HPP
 
 #include <string>
 #include <vector>
@@ -24,15 +24,15 @@ namespace yolo
         int bottom;
     };
 
-    class OpenvinoInference
+    class OpenvinoYolo11DetInference
     {
     public:
         ov::Core _core;
         ov::CompiledModel _compiled_model;   // OpenVINO compiled model
         ov::InferRequest _inference_request; // OpenVINO inference request
 
-        cv::Size _model_input_shape; // Input shape of the model (width, height)
-        cv::Size _model_output_shape;  // Output shape of the model (width, height)
+        cv::Size _model_input_shape;  // Input shape of the model (width, height)
+        cv::Size _model_output_shape; // Output shape of the model (width, height)
 
         std::vector<std::string> _classes{
             "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
@@ -47,8 +47,7 @@ namespace yolo
 
         void InitializeModel(
             const std::string &model_path,
-            const cv::Size& model_input_shape = cv::Size(640, 640)
-        )
+            const cv::Size &model_input_shape = cv::Size(640, 640))
         {
             std::cout << "\n---------- start InitializeModel ----------" << std::endl;
 
@@ -93,11 +92,12 @@ namespace yolo
             this->_compiled_model = core.compile_model(model, "AUTO");
             this->_inference_request = this->_compiled_model.create_infer_request(); // Create inference request
 
-            std::cout << "---------- InitializeModel end ----------\n" << std::endl;
+            std::cout << "---------- InitializeModel end ----------\n"
+                      << std::endl;
         }
 
         // Constructor to initialize the model with specified input shape
-        OpenvinoInference(const std::string &model_path, const cv::Size model_input_shape)
+        OpenvinoYolo11DetInference(const std::string &model_path, const cv::Size model_input_shape)
         {
             InitializeModel(model_path, model_input_shape);
         }
@@ -105,21 +105,20 @@ namespace yolo
         std::vector<YoloDetectResult> RunInference(
             cv::Mat &image,
             const float confidence_threshold = 0.25,
-            const float NMS_threshold = 0.5
-        )
+            const float NMS_threshold = 0.5)
         {
             std::cout << "\n---------- start RunInference ----------" << std::endl;
 
-            float scale_factor = Preprocessing(image);          // Preprocess the input image
-            this->_inference_request.infer();                   // Run inference
+            float scale_factor = Preprocessing(image); // Preprocess the input image
+            this->_inference_request.infer();          // Run inference
             auto detect_results = PostProcessing(
                 confidence_threshold,
                 NMS_threshold,
                 scale_factor,
-                image.size()
-            ); // Postprocess the inference results
+                image.size()); // Postprocess the inference results
 
-            std::cout << "---------- RunInference end ----------\n" << std::endl;
+            std::cout << "---------- RunInference end ----------\n"
+                      << std::endl;
             return detect_results;
         }
 
@@ -166,7 +165,8 @@ namespace yolo
 
             this->_inference_request.set_input_tensor(input_tensor); // Set input tensor for inference
 
-            std::cout << "---------- Preprocessing end ----------\n" << std::endl;
+            std::cout << "---------- Preprocessing end ----------\n"
+                      << std::endl;
             return scale_factor;
         }
 
@@ -175,8 +175,7 @@ namespace yolo
             const float confidence_threshold,
             const float NMS_threshold,
             const float scale_factor,
-            const cv::Size original_shape
-        )
+            const cv::Size &original_shape)
         {
             std::cout << "\n---------- start PostProcessing ----------" << std::endl;
 
@@ -191,7 +190,6 @@ namespace yolo
             const float *detections = this->_inference_request.get_output_tensor().data<const float>();
             const cv::Mat detection_outputs(this->_model_output_shape, CV_32F, (float *)detections); // Create OpenCV imagerix from output tensor
             std::cout << "detection_outputs shape(wxh): " << detection_outputs.size() << std::endl;
-
 
             // 【新增】设定一个足够大的常量作为偏移基数 (通常 YOLO 输入是 640 或 1280，4096 绝对够用)
             const int max_wh = 4096;
@@ -269,12 +267,13 @@ namespace yolo
                 results.push_back(result);
             }
 
-            std::cout << "---------- PostProcessing end ----------\n" << std::endl;
+            std::cout << "---------- PostProcessing end ----------\n"
+                      << std::endl;
             return results;
         }
 
         // Method to get the bounding box in the correct scale
-        std::array<int, 4> GetBoundingBox(const cv::Rect &src, const float scale_factor, const cv::Size& original_shape)
+        std::array<int, 4> GetBoundingBox(const cv::Rect &src, const float scale_factor, const cv::Size &original_shape)
         {
             // 1. 将基于 640x640 尺度的坐标和宽高，按比例还原回原图尺度
             int left = static_cast<int>(src.x / scale_factor);
@@ -299,7 +298,6 @@ namespace yolo
 
             return {safe_left, safe_top, safe_right, safe_bottom};
         }
-
 
         cv::Mat DrawDetectedObject(cv::Mat &image, const std::vector<YoloDetectResult> &detect_results)
         {
@@ -347,4 +345,4 @@ namespace yolo
 
 } // namespace yolo
 
-#endif // YOLO11_OPENVINO_INFER_HPP
+#endif // OPENVINO_YOLO11_DET_INFER_HPP

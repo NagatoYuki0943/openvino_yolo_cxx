@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 #include "main.h"
-#include "yolo11_openvino_infer.hpp"
+#include "openvino_yolo11_det_inference.hpp"
 
 namespace fs = std::filesystem;
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     const float NMS_threshold = 0.5;
 
     // Initialize the YOLO inference with the specified model and parameters
-    yolo::OpenvinoInference inference(model_path, cv::Size(640, 640));
+    yolo::OpenvinoYolo11DetInference inference = {model_path, cv::Size(640, 640)};
 
     // Run inference on the input image
     auto detect_results = inference.RunInference(image, confidence_threshold, NMS_threshold);
