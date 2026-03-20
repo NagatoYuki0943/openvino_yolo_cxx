@@ -229,7 +229,7 @@ namespace yolo
                 // Check if the detection meets the confidence threshold
                 if (score > confidence_threshold)
                 {
-                    class_list.push_back(class_id.y);
+                    class_list.push_back(class_id.x);
                     confidence_list.push_back(score);
 
                     const float cx = transposed_outputs.at<float>(i, 0);
