@@ -312,50 +312,51 @@ namespace yolo
 
             return {safe_left, safe_top, safe_right, safe_bottom};
         }
-
-        cv::Mat DrawDetectedObject(cv::Mat &image, const std::vector<YoloDetectResult> &detect_results)
-        {
-            for (const auto &result : detect_results)
-            {
-                const float &confidence = result.confidence;
-                const int &class_id = result.class_id;
-
-                // Generate a random color for the bounding box
-                std::random_device rd;
-                std::mt19937 gen(rd());
-                std::uniform_int_distribution<int> dis(120, 255);
-                const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
-
-                // Draw the bounding box around the detected object
-                cv::rectangle(image, cv::Point(result.left, result.top), cv::Point(result.right, result.bottom), color, 2);
-
-                // Prepare the class label and confidence text
-                std::string classString = _classes[class_id] + " " + std::to_string(confidence).substr(0, 4);
-
-                // Get the size of the text box
-                cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 1, 0);
-                int top;
-                if (result.top > textSize.height + 5)
-                    top = result.top - textSize.height - 10;
-                else
-                    top = result.top + textSize.height + 10;
-
-                // xmin + t_w, ymin
-
-                // Draw the text box
-                cv::rectangle(image, {result.left, top}, {result.left + textSize.width, result.top}, color, cv::FILLED);
-
-                // Put the class label and confidence text above the bounding box
-                // ymin - 5 if ymin > t_h + 5 else ymin + t_h + 5
-                if (result.top > textSize.height + 5)
-                    top = result.top - 5;
-                else
-                    top = result.top + textSize.height + 5;
-                cv::putText(image, classString, {result.left, top}, cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 1, 0);
-            }
-            return image;
-        }
     };
+
+    cv::Mat DrawDetectedObject(cv::Mat &image, const std::vector<YoloDetectResult> &detect_results)
+    {
+        for (const auto &result : detect_results)
+        {
+            const float &confidence = result.confidence;
+            const std::string &class_name = result.class_name;
+            const int &class_id = result.class_id;
+
+            // Generate a random color for the bounding box
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<int> dis(120, 255);
+            const cv::Scalar &color = cv::Scalar(dis(gen), dis(gen), dis(gen));
+
+            // Draw the bounding box around the detected object
+            cv::rectangle(image, cv::Point(result.left, result.top), cv::Point(result.right, result.bottom), color, 2);
+
+            // Prepare the class label and confidence text
+            std::string classString = class_name + " " + std::to_string(confidence).substr(0, 4);
+
+            // Get the size of the text box
+            cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 0.75, 1, 0);
+            int top;
+            if (result.top > textSize.height + 5)
+                top = result.top - textSize.height - 10;
+            else
+                top = result.top + textSize.height + 10;
+
+            // xmin + t_w, ymin
+
+            // Draw the text box
+            cv::rectangle(image, {result.left, top}, {result.left + textSize.width, result.top}, color, cv::FILLED);
+
+            // Put the class label and confidence text above the bounding box
+            // ymin - 5 if ymin > t_h + 5 else ymin + t_h + 5
+            if (result.top > textSize.height + 5)
+                top = result.top - 5;
+            else
+                top = result.top + textSize.height + 5;
+            cv::putText(image, classString, {result.left, top}, cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 1, 0);
+        }
+        return image;
+    }
 
 } // namespace yolo
 

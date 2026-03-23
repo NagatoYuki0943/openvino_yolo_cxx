@@ -57,7 +57,7 @@ int predict_image()
     }
 
     cv::Mat draw_image = image.clone();
-    inference.DrawDetectedObject(draw_image, detect_results);
+    yolo::DrawDetectedObject(draw_image, detect_results);
 
     // Display the image with the detections
     cv::imshow("draw_image", draw_image);
@@ -123,7 +123,7 @@ int predict_video()
         auto detect_results = inference.RunInference(frame, confidence_threshold, NMS_threshold);
 
         // 将检测框绘制到当前帧上
-        inference.DrawDetectedObject(frame, detect_results);
+        yolo::DrawDetectedObject(frame, detect_results);
 
         // 将处理后的帧写入输出视频文件
         writer.write(frame);
@@ -153,13 +153,14 @@ int predict_video()
     return 0;
 }
 
+
 int main(int argc, char *argv[])
 {
     std::cout << "argc: " << argc << std::endl;
     std::cout << "program name: " << argv[0] << std::endl;
 
-    // int res = predict_image();
-    int res = predict_video();
+    int res = predict_image();
+    // int res = predict_video();
     if (res != 0)
         return -1;
 
