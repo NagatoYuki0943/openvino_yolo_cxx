@@ -54,7 +54,9 @@ namespace byte_kalman
         std(1) = 2 * _std_weight_position * measurement[3];
         // aspect_ratio    0.1         宽高比不确定性
         // std(2) = 1e-2;
-        std(2) = 0.1;
+        // std(2) = 0.1;
+        // 【修改点 1】: width 宽度不确定性，依赖于初始宽度的像素值
+        std(2) = 2 * _std_weight_position * measurement[2];
         // height    2 × w_pos × h    高度不确定性
         std(3) = 2 * _std_weight_position * measurement[3];
         // vx    10 × w_vel × h    x 速度不确定性
@@ -64,9 +66,11 @@ namespace byte_kalman
         // v_aspect_ratio    1e-5    宽高比变化率不确定性
         // std(6) = 1e-5;
         // std(6) = 0.001;
-        std(6) = 0.0025;
+        // std(6) = 0.0025;
         // std(6) = 0.01;
         // std(6) = 0.1 * _std_weight_velocity * measurement[3];
+        // 【修改点 2】: v_width 宽度变化率不确定性，依赖于宽度的像素值
+        std(6) = 10 * _std_weight_velocity * measurement[2];
         // v_height    10 × w_vel × h    高度变化率不确定性
         std(7) = 10 * _std_weight_velocity * measurement[3];
 
@@ -79,14 +83,18 @@ namespace byte_kalman
     {
         // revise the data;
         DETECTBOX std_pos;
+        // 【修改点 3】: 将第三个参数（原 1e-2）替换为与宽度 mean(2) 相关的动态噪声
         std_pos << _std_weight_position * mean(3),
             _std_weight_position * mean(3),
-            1e-2,
+            // 1e-2,
+            _std_weight_position * mean(2),
             _std_weight_position * mean(3);
         DETECTBOX std_vel;
+        // 【修改点 4】: 将第三个参数（原 1e-5）替换为与宽度 mean(2) 相关的动态噪声
         std_vel << _std_weight_velocity * mean(3),
             _std_weight_velocity * mean(3),
-            1e-5,
+            // 1e-5,
+            _std_weight_velocity * mean(2),
             _std_weight_velocity * mean(3);
         KAL_MEAN tmp;
         tmp.block<1, 4>(0, 0) = std_pos;
@@ -104,8 +112,12 @@ namespace byte_kalman
     KAL_HDATA KalmanFilter::project(const KAL_MEAN &mean, const KAL_COVA &covariance)
     {
         DETECTBOX std;
-        std << _std_weight_position * mean(3), _std_weight_position * mean(3),
-            1e-1, _std_weight_position * mean(3);
+        // 【修改点 5】: 将第三个参数（原 1e-1）替换为与宽度 mean(2) 相关的动态噪声
+        std << _std_weight_position * mean(3),
+            _std_weight_position * mean(3),
+            // 1e-1,
+            _std_weight_position * mean(2),
+            _std_weight_position * mean(3);
         KAL_HMEAN mean1 = _update_mat * mean.transpose();
         KAL_HCOVA covariance1 = _update_mat * covariance * (_update_mat.transpose());
         Eigen::Matrix<float, 4, 4> diag = std.asDiagonal();
@@ -133,7 +145,7 @@ namespace byte_kalman
         // check_finite=False).T
         Eigen::Matrix<float, 4, 8> B = (covariance * (_update_mat.transpose())).transpose();
         Eigen::Matrix<float, 8, 4> kalman_gain = (projected_cov.llt().solve(B)).transpose(); // eg.8x4
-        Eigen::Matrix<float, 1, 4> innovation = measurement - projected_mean;                 // eg.1x4
+        Eigen::Matrix<float, 1, 4> innovation = measurement - projected_mean;                // eg.1x4
         auto tmp = innovation * (kalman_gain.transpose());
         KAL_MEAN new_mean = (mean.array() + tmp.array()).matrix();
         KAL_COVA new_covariance = covariance - kalman_gain * projected_cov * (kalman_gain.transpose());

@@ -128,7 +128,8 @@ namespace ByteTrack
         tlwh[2] = mean[2];
         tlwh[3] = mean[3];
 
-        tlwh[2] *= tlwh[3];
+        // 上面直接使用 width, 这里不用再还原
+        // tlwh[2] *= tlwh[3];
         tlwh[0] -= tlwh[2] / 2;
         tlwh[1] -= tlwh[3] / 2;
     }
@@ -144,9 +145,9 @@ namespace ByteTrack
     std::vector<float> STrack::tlwh_to_xyah(std::vector<float> tlwh_tmp)
     {
         std::vector<float> tlwh_output = tlwh_tmp;
-        tlwh_output[0] += tlwh_output[2] / 2;
-        tlwh_output[1] += tlwh_output[3] / 2;
-        tlwh_output[2] /= tlwh_output[3];
+        tlwh_output[0] += tlwh_output[2] / 2; // x_center
+        tlwh_output[1] += tlwh_output[3] / 2; // y_center
+        // tlwh_output[2] /= tlwh_output[3];  // 宽高比
         return tlwh_output;
     }
 
