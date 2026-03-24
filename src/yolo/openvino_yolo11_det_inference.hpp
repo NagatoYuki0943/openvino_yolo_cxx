@@ -47,11 +47,11 @@ namespace yolo
             "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard",
             "cell phone", "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase",
             "scissors", "teddy bear", "hair drier", "toothbrush"};
-        void InitializeModel(
+        void init_model(
             const std::string &model_path,
             const cv::Size &model_input_shape = cv::Size(640, 640))
         {
-            // std::cout << "\n---------- start InitializeModel ----------" << std::endl;
+            // std::cout << "\n---------- start init_model ----------" << std::endl;
 
             ov::Core core;                                                  // OpenVINO core object
             std::shared_ptr<ov::Model> model = core.read_model(model_path); // Read the model from file
@@ -80,7 +80,7 @@ namespace yolo
             this->_model_output_shape = cv::Size(width, height);
             // std::cout << "_model_output_shape shape(wxh): " << this->_model_output_shape << std::endl;
 
-            // Preprocessing setup for the model
+            // pre_process setup for the model
             ov::preprocess::PrePostProcessor ppp = ov::preprocess::PrePostProcessor(model);
             ppp.input()
                 .tensor()
@@ -105,40 +105,40 @@ namespace yolo
             this->_compiled_model = core.compile_model(model, "AUTO");
             this->_inference_request = this->_compiled_model.create_infer_request(); // Create inference request
 
-            // std::cout << "---------- InitializeModel end ----------\n"
+            // std::cout << "---------- init_model end ----------\n"
             //           << std::endl;
         }
 
         // Constructor to initialize the model with specified input shape
         OpenvinoYolo11DetInference(const std::string &model_path, const cv::Size model_input_shape)
         {
-            InitializeModel(model_path, model_input_shape);
+            init_model(model_path, model_input_shape);
         }
 
-        std::vector<YoloDetectResult> RunInference(
+        std::vector<YoloDetectResult> predict(
             cv::Mat &image,
             const float confidence_threshold = 0.25,
             const float NMS_threshold = 0.5)
         {
-            // std::cout << "\n---------- start RunInference ----------" << std::endl;
+            // std::cout << "\n---------- start predict ----------" << std::endl;
 
-            float scale_factor = Preprocessing(image); // Preprocess the input image
+            float scale_factor = pre_process(image); // Preprocess the input image
             this->_inference_request.infer();          // Run inference
-            auto detect_results = PostProcessing(
+            auto detect_results = post_process(
                 confidence_threshold,
                 NMS_threshold,
                 scale_factor,
                 image.size()); // Postprocess the inference results
 
-            // std::cout << "---------- RunInference end ----------\n"
+            // std::cout << "---------- predict end ----------\n"
             //           << std::endl;
             return detect_results;
         }
 
         // Method to preprocess the input image
-        float Preprocessing(const cv::Mat &image)
+        float pre_process(const cv::Mat &image)
         {
-            // std::cout << "\n---------- start Preprocessing ----------" << std::endl;
+            // std::cout << "\n---------- start pre_process ----------" << std::endl;
 
             float scale_factor = std::min(
                 static_cast<float>(this->_model_input_shape.width) / static_cast<float>(image.cols),
@@ -178,19 +178,19 @@ namespace yolo
 
             this->_inference_request.set_input_tensor(input_tensor); // Set input tensor for inference
 
-            // std::cout << "---------- Preprocessing end ----------\n"
+            // std::cout << "---------- pre_process end ----------\n"
             //           << std::endl;
             return scale_factor;
         }
 
         // Method to postprocess the inference results
-        std::vector<YoloDetectResult> PostProcessing(
+        std::vector<YoloDetectResult> post_process(
             const float confidence_threshold,
             const float NMS_threshold,
             const float scale_factor,
             const cv::Size &original_shape)
         {
-            // std::cout << "\n---------- start PostProcessing ----------" << std::endl;
+            // std::cout << "\n---------- start post_process ----------" << std::endl;
 
             std::vector<int> class_list;
             std::vector<float> confidence_list;
@@ -273,7 +273,7 @@ namespace yolo
                 result.confidence = confidence_list[id];
 
                 // 这里依然使用未加偏移量的真实 box_list[id] 来还原坐标
-                auto box = GetBoundingBox(box_list[id], scale_factor, original_shape);
+                auto box = get_bounding_box(box_list[id], scale_factor, original_shape);
                 result.left = box[0];
                 result.top = box[1];
                 result.right = box[2];
@@ -282,13 +282,13 @@ namespace yolo
                 results.push_back(result);
             }
 
-            // std::cout << "---------- PostProcessing end ----------\n"
+            // std::cout << "---------- post_process end ----------\n"
             //           << std::endl;
             return results;
         }
 
         // Method to get the bounding box in the correct scale
-        std::array<int, 4> GetBoundingBox(const cv::Rect &src, const float scale_factor, const cv::Size &original_shape)
+        std::array<int, 4> get_bounding_box(const cv::Rect &src, const float scale_factor, const cv::Size &original_shape)
         {
             // 1. 将基于 640x640 尺度的坐标和宽高，按比例还原回原图尺度
             int left = static_cast<int>(src.x / scale_factor);
@@ -326,7 +326,7 @@ namespace yolo
         return cv::Scalar(b, g, r);
     }
 
-    cv::Mat DrawDetectedObject(cv::Mat &image, const std::vector<YoloDetectResult> &detect_results)
+    cv::Mat draw_detected_object(cv::Mat &image, const std::vector<YoloDetectResult> &detect_results)
     {
         for (const auto &result : detect_results)
         {

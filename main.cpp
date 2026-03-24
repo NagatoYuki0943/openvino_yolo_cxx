@@ -43,7 +43,7 @@ int predict_image()
     yolo::OpenvinoYolo11DetInference inference = {model_path, cv::Size(640, 640)};
 
     // Run inference on the input image
-    auto detect_results = inference.RunInference(image, confidence_threshold, NMS_threshold);
+    auto detect_results = inference.predict(image, confidence_threshold, NMS_threshold);
     std::cout << "detect_results num = " << detect_results.size() << std::endl;
     std::cout << "detect_results:" << std::endl;
     for (const auto &detect_result : detect_results)
@@ -58,7 +58,7 @@ int predict_image()
     }
 
     cv::Mat draw_image = image.clone();
-    yolo::DrawDetectedObject(draw_image, detect_results);
+    yolo::draw_detected_object(draw_image, detect_results);
 
     // Display the image with the detections
     cv::imshow("draw_image", draw_image);
@@ -120,11 +120,11 @@ int predict_video()
         }
 
         // 进行目标检测
-        auto detect_results = inference.RunInference(frame, confidence_threshold, NMS_threshold);
+        auto detect_results = inference.predict(frame, confidence_threshold, NMS_threshold);
         std::cout << "detect_results size: " << detect_results.size() << std::endl;
 
         // 将检测框绘制到当前帧上
-        yolo::DrawDetectedObject(frame, detect_results);
+        yolo::draw_detected_object(frame, detect_results);
 
         // 将处理后的帧写入输出视频文件
         writer.write(frame);
@@ -228,7 +228,7 @@ int track_video()
         }
 
         // 进行目标检测
-        auto detect_results = inference.RunInference(frame, confidence_threshold, NMS_threshold);
+        auto detect_results = inference.predict(frame, confidence_threshold, NMS_threshold);
         std::cout << "detect_results size: " << detect_results.size() << std::endl;
 
         // 追踪
@@ -274,7 +274,7 @@ int track_video()
         }
 
         // 将检测框绘制到当前帧上
-        yolo::DrawDetectedObject(frame, detect_results1);
+        yolo::draw_detected_object(frame, detect_results1);
 
         // 将处理后的帧写入输出视频文件
         writer.write(frame);
