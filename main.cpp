@@ -36,14 +36,14 @@ int predict_image()
     // cv::waitKey(0);
 
     // Define the confidence and NMS thresholds
-    const float confidence_threshold = 0.25;
-    const float NMS_threshold = 0.5;
+    const float conf_threshold = 0.25;
+    const float nms_threshold = 0.5;
 
     // Initialize the YOLO inference with the specified model and parameters
     yolo::OpenvinoYolo11DetInference inference = {model_path, cv::Size(640, 640)};
 
     // Run inference on the input image
-    auto detect_boxes = inference.infer(image, confidence_threshold, NMS_threshold);
+    auto detect_boxes = inference.infer(image, conf_threshold, nms_threshold);
     std::cout << "detect_boxes num = " << detect_boxes.size() << std::endl;
     std::cout << "detect_boxes:" << std::endl;
     for (const auto &detect_box : detect_boxes)
@@ -81,8 +81,8 @@ int predict_video()
     }
 
     // 1. 初始化 YOLO 推理
-    const float confidence_threshold = 0.25;
-    const float NMS_threshold = 0.5;
+    const float conf_threshold = 0.25;
+    const float nms_threshold = 0.5;
     yolo::OpenvinoYolo11DetInference inference = {model_path, cv::Size(640, 640)};
 
     // 2. 打开输入视频
@@ -120,7 +120,7 @@ int predict_video()
         }
 
         // 进行目标检测
-        auto detect_boxes = inference.infer(frame, confidence_threshold, NMS_threshold);
+        auto detect_boxes = inference.infer(frame, conf_threshold, nms_threshold);
         std::cout << "detect_boxes size: " << detect_boxes.size() << std::endl;
 
         // 将检测框绘制到当前帧上
@@ -168,8 +168,8 @@ int track_video()
     }
 
     // 1. 初始化 YOLO 推理
-    const float confidence_threshold = 0.05;
-    const float NMS_threshold = 0.5;
+    const float conf_threshold = 0.05;
+    const float nms_threshold = 0.5;
     yolo::OpenvinoYolo11DetInference inference = {model_path, cv::Size(640, 640)};
 
     // 2. 初始化追踪器
@@ -228,7 +228,7 @@ int track_video()
         }
 
         // 进行目标检测
-        auto detect_boxes = inference.infer(frame, confidence_threshold, NMS_threshold);
+        auto detect_boxes = inference.infer(frame, conf_threshold, nms_threshold);
         std::cout << "detect_boxes size: " << detect_boxes.size() << std::endl;
 
         // 追踪
