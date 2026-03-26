@@ -6,7 +6,6 @@ build
 out
 models/*
 !models/.gitkeep
-videos/*
 
 # Prerequisites
 *.d
