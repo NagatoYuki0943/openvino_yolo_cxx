@@ -52,6 +52,8 @@ int predict_image(const Global::GereralConfig &config, const std::string &image_
     yolo::draw_detected_object(draw_image, detect_boxes);
 
     cv::imwrite(output_path, draw_image);
+    std::cout << "Image processing complete. Output saved to: " << output_path << std::endl;
+
     // Display the image with the detections
     cv::imshow("draw_image", draw_image);
     cv::waitKey(0);
