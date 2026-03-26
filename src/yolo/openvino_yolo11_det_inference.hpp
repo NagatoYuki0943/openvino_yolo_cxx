@@ -16,17 +16,6 @@ namespace fs = std::filesystem;
 
 namespace yolo
 {
-    struct YoloDetectBox
-    {
-        int class_id;
-        std::string class_name;
-        float confidence;
-        int left;
-        int top;
-        int right;
-        int bottom;
-        int track_id = -1;
-    };
 
     class OpenvinoYolo11DetInference
     {
@@ -118,7 +107,7 @@ namespace yolo
             init_model(model_path, model_input_shape);
         }
 
-        std::vector<YoloDetectBox> infer(
+        std::vector<Global::YoloDetectBox> infer(
             cv::Mat &image,
             const float conf_threshold = 0.25,
             const float nms_threshold = 0.5)
@@ -187,7 +176,7 @@ namespace yolo
         }
 
         // Method to postprocess the inference results
-        std::vector<YoloDetectBox> post_process(
+        std::vector<Global::YoloDetectBox> post_process(
             const float conf_threshold,
             const float nms_threshold,
             const float scale_factor,
@@ -264,11 +253,11 @@ namespace yolo
             // 【核心修改】这里传入的是带偏移量的 nms_box_list，而不是原来的 box_list
             cv::dnn::NMSBoxes(nms_box_list, confidence_list, conf_threshold, nms_threshold, NMS_result);
 
-            std::vector<YoloDetectBox> boxes;
+            std::vector<Global::YoloDetectBox> boxes;
             // Collect final detections after NMS
             for (int i = 0; i < NMS_result.size(); ++i)
             {
-                YoloDetectBox box;
+                Global::YoloDetectBox box;
                 int id = NMS_result[i];
 
                 box.class_id = class_list[id];
@@ -329,7 +318,7 @@ namespace yolo
         return cv::Scalar(b, g, r);
     }
 
-    inline cv::Mat draw_detected_object(cv::Mat &image, const std::vector<YoloDetectBox> &detect_boxes)
+    inline cv::Mat draw_detected_object(cv::Mat &image, const std::vector<Global::YoloDetectBox> &detect_boxes)
     {
         for (const auto &box : detect_boxes)
         {

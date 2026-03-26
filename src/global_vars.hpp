@@ -9,6 +9,18 @@
 
 namespace Global
 {
+    struct YoloDetectBox
+    {
+        int class_id;
+        std::string class_name;
+        float confidence;
+        int left;
+        int top;
+        int right;
+        int bottom;
+        int track_id = -1;
+    };
+
     inline std::map<int, std::string> default_classes{
         {0, "person"},
         {1, "bicycle"},

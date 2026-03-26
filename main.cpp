@@ -231,11 +231,11 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         std::cout << "tracklets size: " << tracklets.size() << std::endl;
         std::cout << "lostTracklets size: " << lostTracklets.size() << std::endl;
 
-        std::vector<yolo::YoloDetectBox> detect_boxes1;
+        std::vector<Global::YoloDetectBox> detect_boxes1;
         for (const auto &tracklet : tracklets)
         {
             // 创建新数据
-            yolo::YoloDetectBox box;
+            Global::YoloDetectBox box;
             box.track_id = tracklet.track_id;
             box.class_id = tracklet.class_id;
             box.class_name = inference._classes[box.class_id];
