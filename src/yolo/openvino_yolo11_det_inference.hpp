@@ -10,7 +10,7 @@
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <openvino/openvino.hpp>
-#include "../global_vars.hpp"
+#include "global_vars.hpp"
 
 namespace fs = std::filesystem;
 

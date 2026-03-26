@@ -67,13 +67,13 @@ endif()
 # 将源代码添加到此项目的可执行文件。
 set(SOURCES
     main
-    "main.cpp"
-    "src/yolo/openvino_yolo11_det_inference.hpp"
-    "src/ByteTrack/BYTETracker.cpp"
-    "src/ByteTrack/kalmanFilter.cpp"
-    "src/ByteTrack/lapjv.cpp"
-    "src/ByteTrack/STrack.cpp"
-    "src/ByteTrack/utils.cpp"
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/yolo/openvino_yolo11_det_inference.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/BYTETracker.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/kalmanFilter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/lapjv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/STrack.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/utils.cpp
 )
 
 # 添加可执行文件
@@ -81,7 +81,11 @@ add_executable(main ${SOURCES})
 
 # 添加头文件搜索路径
 # 只需要添加你自己项目内部的 include 文件夹
-target_include_directories(main PRIVATE 3rdparty)
+target_include_directories(main PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 # 添加链接目录
 # 现代 CMake 推荐：只要 link 了目标，头文件和编译选项会自动传递
