@@ -5,7 +5,8 @@
 build
 out
 models/*
-!models/.gitkeep
+!models/metadata.json
+!models/yolo11n.onnx
 
 # Prerequisites
 *.d
