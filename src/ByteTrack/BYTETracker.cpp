@@ -233,7 +233,11 @@ namespace ByteTrack
 
         for (int i = 0; i < this->tracked_stracks.size(); i++)
         {
-            output_stracks.push_back(this->tracked_stracks[i]);
+            // 只有“已激活/已确认”的轨迹才能输出给前端
+            if (this->tracked_stracks[i].is_activated)
+            {
+                output_stracks.push_back(this->tracked_stracks[i]);
+            }
         }
 
         lost_stracks.clear();
