@@ -32,7 +32,8 @@ namespace ByteTrack
     void STrack::activate(byte_kalman::KalmanFilter &kalman_filter, int frame_id)
     {
         this->kalman_filter = kalman_filter;
-        this->track_id = this->next_id();
+        // 【解决id增长过快修改点】：延迟分配 id
+        // this->track_id = this->next_id();
 
         std::vector<float> _tlwh_tmp(4);
         _tlwh_tmp[0] = this->_tlwh[0];
@@ -54,11 +55,23 @@ namespace ByteTrack
 
         this->tracklet_len = 0;
         this->state = TrackState::Tracked;
+
+        // 【解决id增长过快修改点】：判断是否为第一帧
+        // if (frame_id == 1)
+        // {
+        //     this->is_activated = true;
+        // }
         if (frame_id == 1)
         {
             this->is_activated = true;
+            this->track_id = this->next_id(); // 只有第一帧的框直接转正，发身份证
         }
-        // this->is_activated = true;
+        else
+        {
+            this->is_activated = false; // 其他帧的新框，进入考察期
+            this->track_id = 0;         // 分配一个无效的占位 ID
+        }
+
         this->frame_id = frame_id;
         this->start_frame = frame_id;
     }
@@ -107,7 +120,14 @@ namespace ByteTrack
         static_tlbr();
 
         this->state = TrackState::Tracked;
-        this->is_activated = true;
+
+        // 【解决id增长过快修改点】：如果是从“未激活”状态变为“激活”状态，此时才分配全局唯一 ID
+        // this->is_activated = true;
+        if (!this->is_activated)
+        {
+            this->track_id = this->next_id(); // 考察期通过，正式发身份证
+            this->is_activated = true;
+        }
 
         this->score = new_track.score;
     }
