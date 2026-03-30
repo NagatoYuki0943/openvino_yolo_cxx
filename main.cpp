@@ -175,7 +175,7 @@ int predict_video(const Global::GereralConfig &config, const std::string &video_
 
 int track_video(const Global::GereralConfig &config, const std::string &video_path, bool enable_multi_class_tracking = true)
 {
-    std::string output_path = fs::path(video_path).stem().string() + "--track" + (enable_multi_class_tracking ? "--in_multi_class" : "--in_single_class") +  ".mp4";
+    std::string output_path = fs::path(video_path).stem().string() + "--track" + (enable_multi_class_tracking ? "--in_multi_class" : "--in_single_class") + ".mp4";
     std::cout << "save track video to " << output_path << std::endl;
 
     // 1. 初始化 YOLO 推理
@@ -319,8 +319,13 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
 
             for (const auto &[class_id, detect_indexes] : class_map)
             {
-                // 追踪
-                auto &tracker = trackers[class_id];
+                if (trackers.find(class_id) == trackers.end())
+                {
+                    std::cout << "Warning: Unknown class_id " << class_id << " detected!" << std::endl;
+                    continue; // 跳过未配置的类别
+                }
+                auto &tracker = trackers.at(class_id);
+
                 std::vector<ByteTrack::Object> track_objects = {};
                 std::vector<ByteTrack::STrack> tracklets = {};
                 std::vector<ByteTrack::STrack> lostTracklets = {};
