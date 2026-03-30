@@ -173,10 +173,16 @@ int predict_video(const Global::GereralConfig &config, const std::string &video_
     return 0;
 }
 
-int track_video(const Global::GereralConfig &config, const std::string &video_path)
+int track_video(const Global::GereralConfig &config, const std::string &video_path, bool enable_multi_class_tracking = true)
 {
-    std::string output_path = fs::path(video_path).stem().string() + "--track.mp4";
+    std::string output_path = fs::path(video_path).stem().string() + "--track" + (enable_multi_class_tracking ? "--in_multi_class" : "--in_single_class") +  ".mp4";
     std::cout << "save track video to " << output_path << std::endl;
+
+    // 1. 初始化 YOLO 推理
+    yolo::OpenvinoYolo11DetInference inference = {
+        config.detect_config.model_path,
+        config.detect_config.model_input_shape,
+        config.detect_config.classes};
 
     // BYTETracker 参数解释
     // max_time_lost 死亡倒计时，目标丢失（未匹配到检测框）后，在内存中保留等待重新出现的总帧数
@@ -185,19 +191,32 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
     // new_track_thresh 出生门槛，只有得分大于此值的检测框，才能被初始化为全新的追踪目标。
     // match_thresh 认亲标准，判定检测框与已有轨迹“是否为同一目标”的匹配代价容忍度（通常基于 IoU）。
 
-    // 1. 初始化 YOLO 推理
-    yolo::OpenvinoYolo11DetInference inference = {
-        config.detect_config.model_path,
-        config.detect_config.model_input_shape,
-        config.detect_config.classes};
-
     // 2. 初始化追踪器
-    ByteTrack::BYTETracker tracker = {
-        config.track_config.max_time_lost,
-        config.track_config.track_high_thresh,
-        config.track_config.track_low_thresh,
-        config.track_config.new_track_thresh,
-        config.track_config.match_thresh};
+    std::map<int, ByteTrack::BYTETracker> trackers;
+    if (!enable_multi_class_tracking)
+    {
+        // 单个追踪器
+        trackers[0] = ByteTrack::BYTETracker{
+            config.track_config.max_time_lost,
+            config.track_config.track_high_thresh,
+            config.track_config.track_low_thresh,
+            config.track_config.new_track_thresh,
+            config.track_config.match_thresh};
+    }
+    else
+    {
+        // 每个类别1个追踪器
+        for (const auto &[id, name] : config.detect_config.classes)
+        {
+            trackers[id] = ByteTrack::BYTETracker{
+                config.track_config.max_time_lost,
+                config.track_config.track_high_thresh,
+                config.track_config.track_low_thresh,
+                config.track_config.new_track_thresh,
+                config.track_config.match_thresh};
+        }
+    }
+    std::cout << "trackers size: " << trackers.size() << std::endl;
 
     // 3. 打开输入视频
     cv::VideoCapture cap(video_path);
@@ -238,45 +257,114 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         std::cout << "detect_boxes size: " << detect_boxes.size() << std::endl;
 
         // 追踪
-        std::vector<ByteTrack::Object> track_objects = {};
-        std::vector<ByteTrack::STrack> tracklets = {};
-        std::vector<ByteTrack::STrack> lostTracklets = {};
-        int target_id = 0;
-        for (const auto &detect_box : detect_boxes)
-        {
-            ByteTrack::Object obj;
-            obj.target_id = target_id;
-            obj.class_id = detect_box.class_id;
-            obj.prob = detect_box.confidence;
-            obj.rect = cv::Rect_<float>(
-                static_cast<float>(detect_box.left),
-                static_cast<float>(detect_box.top),
-                static_cast<float>(detect_box.right - detect_box.left),
-                static_cast<float>(detect_box.bottom - detect_box.top));
-            target_id += 1;
-            track_objects.push_back(obj);
-        }
-
-        // Tracking
-        tracker.update(track_objects, lostTracklets, tracklets);
-        std::cout << "tracklets size: " << tracklets.size() << std::endl;
-        std::cout << "lostTracklets size: " << lostTracklets.size() << std::endl;
-
         std::vector<Global::YoloDetectBox> detect_boxes1;
-        for (const auto &tracklet : tracklets)
+        detect_boxes1.reserve(detect_boxes.size());
+        if (!enable_multi_class_tracking)
         {
-            // 创建新数据
-            Global::YoloDetectBox box;
-            box.track_id = tracklet.track_id;
-            box.class_id = tracklet.class_id;
-            box.class_name = inference._classes[box.class_id];
-            box.confidence = tracklet.score;
-            box.left = tracklet.tlwh[0];
-            box.top = tracklet.tlwh[1];
-            box.right = tracklet.tlwh[0] + tracklet.tlwh[2];
-            box.bottom = tracklet.tlwh[1] + tracklet.tlwh[3];
+            auto &tracker = trackers[0];
+            std::vector<ByteTrack::Object> track_objects = {};
+            std::vector<ByteTrack::STrack> tracklets = {};
+            std::vector<ByteTrack::STrack> lostTracklets = {};
+            int target_id = 0;
+            for (const auto &detect_box : detect_boxes)
+            {
+                ByteTrack::Object obj;
+                obj.target_id = target_id;
+                obj.class_id = detect_box.class_id;
+                obj.prob = detect_box.confidence;
+                obj.rect = cv::Rect_<float>(
+                    static_cast<float>(detect_box.left),
+                    static_cast<float>(detect_box.top),
+                    static_cast<float>(detect_box.right - detect_box.left),
+                    static_cast<float>(detect_box.bottom - detect_box.top));
+                target_id += 1;
+                track_objects.push_back(obj);
+            }
 
-            detect_boxes1.push_back(box);
+            // Tracking
+            tracker.update(track_objects, lostTracklets, tracklets);
+            std::cout << "tracklets size: " << tracklets.size() << std::endl;
+            std::cout << "lostTracklets size: " << lostTracklets.size() << std::endl;
+
+            for (const auto &tracklet : tracklets)
+            {
+                // 创建新数据
+                Global::YoloDetectBox box;
+                box.track_id = tracklet.track_id;
+                box.class_id = tracklet.class_id;
+                box.class_name = inference._classes[box.class_id];
+                box.confidence = tracklet.score;
+                box.left = tracklet.tlwh[0];
+                box.top = tracklet.tlwh[1];
+                box.right = tracklet.tlwh[0] + tracklet.tlwh[2];
+                box.bottom = tracklet.tlwh[1] + tracklet.tlwh[3];
+
+                detect_boxes1.push_back(box);
+            }
+        }
+        else
+        {
+            // 将检测结果按照类别进行分类
+            auto class_map = classify_boxed_by_class(detect_boxes);
+
+            for (const auto &[class_id, detect_indexes] : class_map)
+            {
+                std::cout << "class_id: " << class_id << " detect_indexes: [";
+                for (int index : detect_indexes)
+                {
+                    std::cout << index << ", ";
+                }
+                std::cout << "]" << std::endl;
+            }
+
+            for (const auto &[class_id, detect_indexes] : class_map)
+            {
+                // 追踪
+                auto &tracker = trackers[class_id];
+                std::vector<ByteTrack::Object> track_objects = {};
+                std::vector<ByteTrack::STrack> tracklets = {};
+                std::vector<ByteTrack::STrack> lostTracklets = {};
+
+                // 转换格式
+                for (const auto &index : detect_indexes)
+                {
+                    auto detect_box = detect_boxes[index];
+
+                    ByteTrack::Object obj;
+                    obj.target_id = index;
+                    obj.class_id = detect_box.class_id;
+                    obj.prob = detect_box.confidence;
+                    obj.rect = cv::Rect_<float>(
+                        static_cast<float>(detect_box.left),
+                        static_cast<float>(detect_box.top),
+                        static_cast<float>(detect_box.right - detect_box.left),
+                        static_cast<float>(detect_box.bottom - detect_box.top));
+                    track_objects.push_back(obj);
+                }
+
+                // Tracking
+                tracker.update(track_objects, lostTracklets, tracklets);
+                std::cout << "class_id: " << class_id << " tracklets size: " << tracklets.size() << std::endl;
+                std::cout << "class_id: " << class_id << " lostTracklets size: " << lostTracklets.size() << std::endl;
+
+                // 转换格式
+                for (const auto &tracklet : tracklets)
+                {
+                    // 创建新数据
+                    Global::YoloDetectBox box;
+                    box.track_id = tracklet.track_id;
+                    box.class_id = tracklet.class_id;
+                    box.class_name = inference._classes[box.class_id];
+                    box.confidence = tracklet.score;
+                    box.left = tracklet.tlwh[0];
+                    box.top = tracklet.tlwh[1];
+                    box.right = tracklet.tlwh[0] + tracklet.tlwh[2];
+                    box.bottom = tracklet.tlwh[1] + tracklet.tlwh[3];
+
+                    detect_boxes1.push_back(box);
+                }
+            }
+            std::cout << std::endl;
         }
 
         // 将检测框绘制到当前帧上
@@ -318,7 +406,7 @@ int main(int argc, char *argv[])
     std::cout << "OpenVINO YOLO C++ Demo help: " << std::endl;
     std::cout << "    for predict image, usage: " << argv[0] << " predict_image <model_config_path> <image_path>" << std::endl;
     std::cout << "    for predict video, usage: " << argv[0] << " predict_video <model_config_path> <video_path>" << std::endl;
-    std::cout << "    for track video, usage: " << argv[0] << " track_video <model_config_path> <video_path>" << std::endl;
+    std::cout << "    for track video, usage: " << argv[0] << " track_video <model_config_path> <video_path> <0 or 1:enable_multi_class_tracking>" << std::endl;
     std::cout << "    for filter boxes in polygon(default box), usage: " << argv[0] << " filter_boxes <model_config_path> <image_path>" << std::endl;
     std::cout << "============================================================" << std::endl;
 
@@ -364,7 +452,13 @@ int main(int argc, char *argv[])
     }
     else if (mode == "track_video")
     {
-        res = track_video(config, image_path);
+        bool enable_multi_class_tracking = true;
+        if (args.size() > 4)
+        {
+            enable_multi_class_tracking = std::stoi(args[4]);
+        }
+
+        res = track_video(config, image_path, enable_multi_class_tracking);
     }
     else if (mode == "filter_boxes")
     {

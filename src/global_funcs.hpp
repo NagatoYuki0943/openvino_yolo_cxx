@@ -78,7 +78,7 @@ namespace Global
         return cv::Scalar(b, g, r);
     }
 
-    inline cv::Mat draw_detected_object(cv::Mat &image, const std::vector<YoloDetectBox> &detect_boxes)
+    inline void draw_detected_object(cv::Mat &image, const std::vector<YoloDetectBox> &detect_boxes)
     {
         for (const auto &box : detect_boxes)
         {
@@ -123,9 +123,17 @@ namespace Global
             // 绘制文本（使用黑色字体保证在明亮背景上的对比度）
             cv::putText(image, classString, {box.left, text_top}, cv::FONT_HERSHEY_DUPLEX, 0.75, cv::Scalar(0, 0, 0), 1, 0);
         }
-        return image;
     }
 
+    inline std::map<int, std::vector<int>> classify_boxed_by_class(const std::vector<YoloDetectBox> &detect_boxes)
+    {
+        std::map<int, std::vector<int>> class_map;
+        for (int i = 0; i < detect_boxes.size(); i++)
+        {
+            class_map[detect_boxes[i].class_id].push_back(i);
+        }
+        return class_map;
+    }
 }
 
 #endif // GLOBAL_FUNCS_HPP

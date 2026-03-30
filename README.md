@@ -15,12 +15,12 @@
 
 例子
 
-```pwsh
+```powershell
 ============================================================
 OpenVINO YOLO C++ Demo help:
     for predict image, usage: .\main.exe predict_image <model_config_path> <image_path>
     for predict video, usage: .\main.exe predict_video <model_config_path> <video_path>
-    for track video, usage: .\main.exe track_video <model_config_path> <video_path>
+    for track video, usage: .\main.exetrack_video <model_config_path> <video_path> <0 or 1:enable_multi_class_tracking>
     for filter boxes in polygon(default box), usage: .\main.exe filter_boxes <model_config_path> <image_path>
 ============================================================
 
@@ -33,8 +33,10 @@ OpenVINO YOLO C++ Demo help:
 .\main.exe predict_video ..\..\..\models\metadata.json ..\..\..\videos\MOT16-08-raw.mp4
 
 # for track video
-# 执行后会在执行目录生成 MOT16-08-raw--track.mp4
-.\main.exe track_video ..\..\..\models\metadata.json ..\..\..\videos\MOT16-08-raw.mp4
+# 执行后会在执行目录生成 MOT16-08-raw--track--in_multi_class.mp4
+.\main.exe track_video ..\..\..\models\metadata.json ..\..\..\videos\MOT16-08-raw.mp4 1
+# 执行后会在执行目录生成 MOT16-08-raw--track--in_single_class.mp4
+.\main.exe track_video ..\..\..\models\metadata.json ..\..\..\videos\MOT16-08-raw.mp4 0
 
 # for filter boxes
 # 执行后会在执行目录生成 test_filter_boxes_in_polygon.jpg, bus--predict.jpg
