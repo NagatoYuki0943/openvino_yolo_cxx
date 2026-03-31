@@ -23,7 +23,13 @@ namespace point_polygon_test
 
         // 如果多边形顶点少于 3 个，无法构成有效区域
         if (polygon.size() < 3)
+        {
+            for (size_t i = 0; i < boxes.size(); ++i)
+            {
+                inside_indices.push_back(i);
+            }
             return inside_indices;
+        }
 
         for (size_t i = 0; i < boxes.size(); ++i)
         {
