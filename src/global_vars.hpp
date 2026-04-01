@@ -21,7 +21,7 @@ namespace Global
         int track_id = -1;      // 追踪 id, -1 代表没有追踪
     };
 
-    inline std::map<int, std::string> default_classes{
+    inline std::map<int, std::string> default_classes = {
         {0, "person"},
         {1, "bicycle"},
         {2, "car"},
