@@ -265,6 +265,7 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
             std::vector<ByteTrack::Object> track_objects = {};
             std::vector<ByteTrack::STrack> tracklets = {};
             std::vector<ByteTrack::STrack> lostTracklets = {};
+            std::vector<ByteTrack::STrack> removedTracklets = {};
             int target_id = 0;
             for (const auto &detect_box : detect_boxes)
             {
@@ -282,9 +283,10 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
             }
 
             // Tracking
-            tracker.update(track_objects, lostTracklets, tracklets);
+            tracker.update(track_objects, tracklets, lostTracklets, removedTracklets);
             std::cout << "tracklets size: " << tracklets.size() << std::endl;
             std::cout << "lostTracklets size: " << lostTracklets.size() << std::endl;
+            std::cout << "removedTracklets size: " << removedTracklets.size() << std::endl;
 
             for (const auto &tracklet : tracklets)
             {
@@ -329,6 +331,7 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                 std::vector<ByteTrack::Object> track_objects = {};
                 std::vector<ByteTrack::STrack> tracklets = {};
                 std::vector<ByteTrack::STrack> lostTracklets = {};
+                std::vector<ByteTrack::STrack> removedTracklets = {};
 
                 // 转换格式
                 for (const auto &index : detect_indexes)
@@ -348,9 +351,10 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                 }
 
                 // Tracking
-                tracker.update(track_objects, lostTracklets, tracklets);
+                tracker.update(track_objects, tracklets, lostTracklets, removedTracklets);
                 std::cout << "class_id: " << class_id << " tracklets size: " << tracklets.size() << std::endl;
                 std::cout << "class_id: " << class_id << " lostTracklets size: " << lostTracklets.size() << std::endl;
+                std::cout << "class_id: " << class_id << " removedTracklets size: " << removedTracklets.size() << std::endl;
 
                 // 转换格式
                 for (const auto &tracklet : tracklets)

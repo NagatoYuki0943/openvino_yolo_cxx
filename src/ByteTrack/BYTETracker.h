@@ -21,7 +21,15 @@ namespace ByteTrack
         BYTETracker(int max_time_lost = 15, float track_high_thresh = 0.5, float track_low_thresh = 0.1, float new_track_thresh = 0.6, float match_thresh = 0.8);
         ~BYTETracker();
 
-        void update(const std::vector<Object> &objects, std::vector<STrack> &lost_stracks, std::vector<STrack> &output_stracks);
+        void update(
+            const std::vector<Object> &objects,
+            // 追踪的轨迹
+            std::vector<STrack> &output_stracks,
+            // 临时丢失的轨迹
+            std::vector<STrack> &lost_stracks,
+            // 需要被永久删除的轨迹
+            std::vector<STrack> &removed_stracks
+        );
 
         void set_max_time_lost(int val) { max_time_lost = val; };
         void set_track_high_thresh(float thresh) { track_high_thresh = thresh; };

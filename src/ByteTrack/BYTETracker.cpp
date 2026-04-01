@@ -19,14 +19,21 @@ namespace ByteTrack
     {
     }
 
-    void BYTETracker::update(const std::vector<Object> &objects, std::vector<STrack> &lost_stracks, std::vector<STrack> &output_stracks)
+    void BYTETracker::update(
+        const std::vector<Object> &objects,
+        // 追踪的轨迹
+        std::vector<STrack> &output_stracks,
+        // 临时丢失的轨迹
+        std::vector<STrack> &lost_stracks,
+        // 需要被永久删除的轨迹
+        std::vector<STrack> &removed_stracks
+    )
     {
         ////////////////// Step 1: Get detections (获取并划分当前帧的检测结果) //////////////////
         this->frame_id++; // 帧计数器递增
         // 定义不同状态的轨迹集合，用于后续更新状态机
         std::vector<STrack> activated_stracks; // 成功匹配并更新的活跃轨迹
         std::vector<STrack> refind_stracks;    // 从 Lost 状态重新找回的轨迹
-        std::vector<STrack> removed_stracks;   // 需要被永久删除的轨迹
         std::vector<STrack> detections;        // 高分检测框集合 (得分 >= track_high_thresh)
         std::vector<STrack> detections_low;    // 低分检测框集合 (得分在 track_low_thresh 和 track_high_thresh 之间)
 
