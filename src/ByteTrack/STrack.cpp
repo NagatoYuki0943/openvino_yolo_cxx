@@ -96,6 +96,9 @@ namespace ByteTrack
         this->is_activated = true;
         this->frame_id = frame_id;
         this->score = new_track.score;
+        // 继承最新一帧对应的检测框索引
+        this->target_id = new_track.target_id;
+
         if (new_id)
             this->track_id = next_id();
     }
@@ -130,6 +133,8 @@ namespace ByteTrack
         }
 
         this->score = new_track.score;
+        // 继承最新一帧对应的检测框索引
+        this->target_id = new_track.target_id;
     }
 
     void STrack::static_tlwh()
