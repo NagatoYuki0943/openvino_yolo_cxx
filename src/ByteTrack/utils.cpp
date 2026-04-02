@@ -1,21 +1,22 @@
 #include "BYTETracker.h"
 #include "lapjv.h"
+#include <cstdint>
 
 namespace ByteTrack
 {
 
     std::vector<STrack *> BYTETracker::joint_stracks(std::vector<STrack *> &tlista, std::vector<STrack> &tlistb)
     {
-        std::map<int, int> exists;
+        std::map<uint64_t, int> exists;
         std::vector<STrack *> res;
         for (int i = 0; i < tlista.size(); i++)
         {
-            exists.insert(std::pair<int, int>(tlista[i]->track_id, 1));
+            exists.insert(std::pair<uint64_t, int>(tlista[i]->track_id, 1));
             res.push_back(tlista[i]);
         }
         for (int i = 0; i < tlistb.size(); i++)
         {
-            int tid = tlistb[i].track_id;
+            uint64_t tid = tlistb[i].track_id;
             if (!exists[tid] || exists.count(tid) == 0)
             {
                 exists[tid] = 1;
@@ -27,16 +28,16 @@ namespace ByteTrack
 
     std::vector<STrack> BYTETracker::joint_stracks(std::vector<STrack> &tlista, std::vector<STrack> &tlistb)
     {
-        std::map<int, int> exists;
+        std::map<uint64_t, int> exists;
         std::vector<STrack> res;
         for (int i = 0; i < tlista.size(); i++)
         {
-            exists.insert(std::pair<int, int>(tlista[i].track_id, 1));
+            exists.insert(std::pair<uint64_t, int>(tlista[i].track_id, 1));
             res.push_back(tlista[i]);
         }
         for (int i = 0; i < tlistb.size(); i++)
         {
-            int tid = tlistb[i].track_id;
+            uint64_t tid = tlistb[i].track_id;
             if (!exists[tid] || exists.count(tid) == 0)
             {
                 exists[tid] = 1;
@@ -48,14 +49,14 @@ namespace ByteTrack
 
     std::vector<STrack> BYTETracker::sub_stracks(std::vector<STrack> &tlista, std::vector<STrack> &tlistb)
     {
-        std::map<int, STrack> stracks;
+        std::map<uint64_t, STrack> stracks;
         for (int i = 0; i < tlista.size(); i++)
         {
-            stracks.insert(std::pair<int, STrack>(tlista[i].track_id, tlista[i]));
+            stracks.insert(std::pair<uint64_t, STrack>(tlista[i].track_id, tlista[i]));
         }
         for (int i = 0; i < tlistb.size(); i++)
         {
-            int tid = tlistb[i].track_id;
+            uint64_t tid = tlistb[i].track_id;
             if (stracks.count(tid) != 0)
             {
                 stracks.erase(tid);
@@ -63,7 +64,7 @@ namespace ByteTrack
         }
 
         std::vector<STrack> res;
-        std::map<int, STrack>::iterator it;
+        std::map<uint64_t, STrack>::iterator it;
         for (it = stracks.begin(); it != stracks.end(); ++it)
         {
             res.push_back(it->second);

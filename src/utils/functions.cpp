@@ -4,7 +4,6 @@
 #include "../global_vars.hpp"
 #include "functions.hpp"
 
-
 namespace detect_utils
 {
 
@@ -28,7 +27,7 @@ namespace detect_utils
             const int &class_id = box.class_id;
 
             // 优先使用 track_id 获取颜色。如果未使用追踪器，则退化为按类别区分颜色
-            int id_to_color = (box.track_id >= 0) ? box.track_id : class_id;
+            int id_to_color = (box.track_id > 0) ? box.track_id : class_id;
             const cv::Scalar color = GetColorForId(id_to_color);
 
             // 绘制目标边界框
@@ -36,7 +35,7 @@ namespace detect_utils
 
             // 准备标签文本
             std::string classString = class_name + " " + std::to_string(confidence).substr(0, 4);
-            if (box.track_id >= 0)
+            if (box.track_id > 0)
             {
                 classString += " ID:" + std::to_string(box.track_id);
             }

@@ -2,6 +2,7 @@
 #define STRACK_H
 #pragma once
 
+#include <cstdint>
 #include <opencv2/opencv.hpp>
 #include "kalmanFilter.h"
 
@@ -30,7 +31,7 @@ namespace ByteTrack
         std::vector<float> to_xyah();
         void mark_lost();
         void mark_removed();
-        int next_id();
+        uint64_t next_id();
         int end_frame();
 
         void activate(byte_kalman::KalmanFilter &kalman_filter, int frame_id);
@@ -40,7 +41,7 @@ namespace ByteTrack
 
     public:
         bool is_activated;
-        int track_id;
+        uint64_t track_id;
         int state;
 
         std::vector<float> _tlwh;
