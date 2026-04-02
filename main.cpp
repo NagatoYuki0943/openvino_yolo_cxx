@@ -273,11 +273,11 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
             std::vector<ByteTrack::STrack> tracklets = {};
             std::vector<ByteTrack::STrack> lostTracklets = {};
             std::vector<ByteTrack::STrack> removedTracklets = {};
-            int target_id = 0;
+            int index = 0;
             for (const auto &detect_box : detect_boxes)
             {
                 ByteTrack::Object obj;
-                obj.target_id = target_id;
+                obj.target_id = index;
                 obj.class_id = detect_box.class_id;
                 obj.prob = detect_box.confidence;
                 obj.rect = cv::Rect_<float>(
@@ -285,8 +285,8 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                     static_cast<float>(detect_box.top),
                     static_cast<float>(detect_box.right - detect_box.left),
                     static_cast<float>(detect_box.bottom - detect_box.top));
-                target_id += 1;
                 track_objects.push_back(obj);
+                index += 1;
             }
 
             // Tracking
@@ -308,6 +308,10 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                 box.right = tracklet.tlwh[0] + tracklet.tlwh[2];
                 box.bottom = tracklet.tlwh[1] + tracklet.tlwh[3];
 
+                // 使用原始检测框, 只是添加 track_id
+                // auto box = detect_boxes[tracklet.target_id];
+                // box.track_id = tracklet.track_id;
+
                 detect_boxes1.push_back(box);
             }
         }
@@ -324,10 +328,7 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                     std::cout << index << ", ";
                 }
                 std::cout << "]" << std::endl;
-            }
 
-            for (const auto &[class_id, detect_indexes] : class_map)
-            {
                 if (trackers.find(class_id) == trackers.end())
                 {
                     std::cout << "Warning: Unknown class_id " << class_id << " detected!" << std::endl;
@@ -376,6 +377,10 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                     box.top = tracklet.tlwh[1];
                     box.right = tracklet.tlwh[0] + tracklet.tlwh[2];
                     box.bottom = tracklet.tlwh[1] + tracklet.tlwh[3];
+
+                    // 使用原始检测框, 只是添加 track_id
+                    // auto box = detect_boxes[tracklet.target_id];
+                    // box.track_id = tracklet.track_id;
 
                     detect_boxes1.push_back(box);
                 }
