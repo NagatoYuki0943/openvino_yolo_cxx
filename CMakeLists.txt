@@ -69,6 +69,7 @@ set(SOURCES
     main
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/yolo/openvino_yolo11_det_inference.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/global_funcs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/point_polygon_test.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/BYTETracker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/kalmanFilter.cpp
