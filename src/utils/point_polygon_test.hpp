@@ -6,9 +6,9 @@
 #include <vector>
 #include <string>
 #include <opencv2/opencv.hpp> // 引入 OpenCV 头文件
-#include "global_vars.hpp"
+#include "../global_vars.hpp"
 
-namespace point_polygon_test
+namespace detect_utils
 {
 
     // 主功能函数

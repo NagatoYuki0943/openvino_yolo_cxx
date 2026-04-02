@@ -2,10 +2,10 @@
 #include <vector>
 #include <string>
 #include <opencv2/opencv.hpp>
-#include "global_vars.hpp"
+#include "../global_vars.hpp"
 #include "point_polygon_test.hpp"
 
-namespace point_polygon_test
+namespace detect_utils
 {
 
     // 主功能函数

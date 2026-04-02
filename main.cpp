@@ -7,7 +7,8 @@
 #include <nlohmann/json.hpp>
 #include "yolo/openvino_yolo11_det_inference.hpp"
 #include "ByteTrack/BYTETracker.h"
-#include "point_polygon_test.hpp"
+#include "utils/functions.hpp"
+#include "utils/point_polygon_test.hpp"
 #include "global_vars.hpp"
 #include "global_funcs.hpp"
 
@@ -61,7 +62,7 @@ int predict_image(const Global::GereralConfig &config, const std::string &image_
             cv::Point(50, 1000),
             cv::Point(250, 800),
             cv::Point(100, 700)};
-        auto inside_indices = point_polygon_test::filter_boxes_in_polygon(detect_boxes, polygon);
+        auto inside_indices = detect_utils::filter_boxes_in_polygon(detect_boxes, polygon);
 
         std::cout << "inside_indices size: " << inside_indices.size() << std::endl;
         std::cout << "inside_indices: [";
@@ -72,7 +73,7 @@ int predict_image(const Global::GereralConfig &config, const std::string &image_
         std::cout << "]" << std::endl;
 
         // 绘制多边形
-        point_polygon_test::draw_closed_polygon(draw_image, polygon);
+        detect_utils::draw_closed_polygon(draw_image, polygon);
 
         std::vector<Global::YoloDetectBox> filtered_boxes;
         filtered_boxes.reserve(inside_indices.size());
@@ -81,7 +82,7 @@ int predict_image(const Global::GereralConfig &config, const std::string &image_
         detect_boxes = std::move(filtered_boxes);
     }
 
-    Global::draw_detected_object(draw_image, detect_boxes);
+    detect_utils::draw_detected_object(draw_image, detect_boxes);
 
     cv::imwrite(output_path, draw_image);
     std::cout << "Image processing complete. Output saved to: " << output_path << std::endl;
@@ -143,7 +144,7 @@ int predict_video(const Global::GereralConfig &config, const std::string &video_
         std::cout << "detect_boxes size: " << detect_boxes.size() << std::endl;
 
         // 将检测框绘制到当前帧上
-        Global::draw_detected_object(frame, detect_boxes);
+        detect_utils::draw_detected_object(frame, detect_boxes);
 
         // 将处理后的帧写入输出视频文件
         writer.write(frame);
@@ -318,7 +319,7 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         else
         {
             // 将检测结果按照类别进行分类
-            auto class_map = classify_boxed_by_class(detect_boxes);
+            auto class_map = detect_utils::classify_boxed_by_class(detect_boxes);
 
             for (const auto &[class_id, detect_indexes] : class_map)
             {
@@ -389,7 +390,7 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         }
 
         // 将检测框绘制到当前帧上
-        Global::draw_detected_object(frame, track_boxes);
+        detect_utils::draw_detected_object(frame, track_boxes);
 
         // 将处理后的帧写入输出视频文件
         writer.write(frame);
@@ -483,7 +484,7 @@ int main(int argc, char *argv[])
     }
     else if (mode == "filter_boxes")
     {
-        point_polygon_test::test_filter_boxes_in_polygon();
+        detect_utils::test_filter_boxes_in_polygon();
         res = predict_image(config, image_path, true);
     }
     else
