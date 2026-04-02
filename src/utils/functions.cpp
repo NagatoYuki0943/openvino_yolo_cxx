@@ -75,4 +75,109 @@ namespace detect_utils
         return class_map;
     }
 
+    /**
+     * @brief 计算两个 Box 之间的 IoU (Intersection over Union)
+     */
+    float calculate_iou(const Global::YoloDetectBox &box1, const Global::YoloDetectBox &box2)
+    {
+        // 计算交集的左上角和右下角坐标
+        int inter_left = std::max(box1.left, box2.left);
+        int inter_top = std::max(box1.top, box2.top);
+        int inter_right = std::min(box1.right, box2.right);
+        int inter_bottom = std::min(box1.bottom, box2.bottom);
+
+        // 如果没有交集，宽或高会小于等于 0
+        int inter_width = std::max(0, inter_right - inter_left);
+        int inter_height = std::max(0, inter_bottom - inter_top);
+
+        // 交集面积
+        int inter_area = inter_width * inter_height;
+
+        // 两个 Box 各自的面积
+        int area1 = (box1.right - box1.left) * (box1.bottom - box1.top);
+        int area2 = (box2.right - box2.left) * (box2.bottom - box2.top);
+
+        // 并集面积 = 面积1 + 面积2 - 交集面积
+        int union_area = area1 + area2 - inter_area;
+
+        // 防止除以 0
+        if (union_area <= 0)
+            return 0.0f;
+
+        return static_cast<float>(inter_area) / static_cast<float>(union_area);
+    }
+
+    /**
+     * @brief 计算两个 Box 之间的 IoA (Intersection over Area)
+     */
+    float calculate_ioa(const Global::YoloDetectBox &ref_box, const Global::YoloDetectBox &target_box)
+    {
+        int inter_left = std::max(ref_box.left, target_box.left);
+        int inter_top = std::max(ref_box.top, target_box.top);
+        int inter_right = std::min(ref_box.right, target_box.right);
+        int inter_bottom = std::min(ref_box.bottom, target_box.bottom);
+
+        int inter_width = std::max(0, inter_right - inter_left);
+        int inter_height = std::max(0, inter_bottom - inter_top);
+        int inter_area = inter_width * inter_height;
+
+        // 只计算被过滤目标 (target_box) 的自身面积
+        int target_area = (target_box.right - target_box.left) * (target_box.bottom - target_box.top);
+
+        if (target_area <= 0)
+            return 0.0f;
+
+        // 返回：交集面积 占据 目标区域面积 的百分比
+        return static_cast<float>(inter_area) / static_cast<float>(target_area);
+    }
+
+    /**
+     * @brief 过滤 target_boxes 中与 reference_boxes 重叠度大于 threshold 的目标
+     * @param target_boxes 待过滤的目标列表
+     * @param reference_boxes 作为参考的目标列表
+     * @param threshold 重叠度阈值，大于此值的 target_box 会被忽略
+     */
+    std::vector<Global::YoloDetectBox> filter_boxes_by_reference(
+        const std::vector<Global::YoloDetectBox> &target_boxes,
+        const std::vector<Global::YoloDetectBox> &reference_boxes,
+        float threshold,
+        bool use_ioa)
+    {
+        std::vector<Global::YoloDetectBox> filtered_boxes;
+        filtered_boxes.reserve(target_boxes.size());
+
+        for (const auto &target_box : target_boxes)
+        {
+            bool should_ignore = false;
+
+            // 拿当前 target_box 去和所有的 reference_box 比较
+            for (const auto &ref_box : reference_boxes)
+            {
+                float iou_or_ioa;
+                if (use_ioa)
+                {
+                    iou_or_ioa = calculate_ioa(ref_box, target_box);
+                }
+                else
+                {
+                    iou_or_ioa = calculate_iou(ref_box, target_box);
+                }
+
+                if (iou_or_ioa > threshold)
+                {
+                    should_ignore = true;
+                    break; // 只要和其中一个重叠度超标，就忽略它，不用再往后比了
+                }
+            }
+
+            // 如果没有被忽略，则保留下来
+            if (!should_ignore)
+            {
+                filtered_boxes.push_back(target_box);
+            }
+        }
+
+        return filtered_boxes;
+    }
+
 }
