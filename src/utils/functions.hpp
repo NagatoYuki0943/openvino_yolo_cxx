@@ -32,10 +32,10 @@ namespace detect_utils
 
     /**
      * @brief 合并同类别检测结果
-     * @param class_boxes 按类别 ID 分组的检测结果
+     * @param classified_boxes 按类别 ID 分组的检测结果
      * @return 合并后的检测结果
      */
-    std::vector<Global::YoloDetectBox> merge_classified_boxes(const std::map<int, std::vector<Global::YoloDetectBox>> &class_boxes);
+    std::vector<Global::YoloDetectBox> merge_classified_boxes(const std::map<int, std::vector<Global::YoloDetectBox>> &classified_boxes);
 
     /**
      * @brief 计算两个 Box 之间的 IoU (Intersection over Union)
@@ -52,12 +52,30 @@ namespace detect_utils
      * @param target_boxes 待过滤的目标列表
      * @param reference_boxes 作为参考的目标列表
      * @param threshold 重叠度阈值，大于此值的 target_box 会被忽略
+     * @param use_ioa 是否使用 IoA 计算重叠度
+     * @return 过滤后的检测结果
      */
     std::vector<Global::YoloDetectBox> filter_boxes_by_reference(
         const std::vector<Global::YoloDetectBox> &target_boxes,
         const std::vector<Global::YoloDetectBox> &reference_boxes,
-        float threshold = 0.8f,
-        bool use_ioa = false);
+        float threshold = 0.7f,
+        bool use_ioa = true);
+
+    /**
+     * @brief 过滤掉某些类别的检测结果
+     * @param detect_boxes 检测结果
+     * @param target_id 要过滤的类别 ID
+     * @param ref_id 参考类别 ID
+     * @param threshold 重叠度阈值，大于此值的 target_box 会被忽略
+     * @param use_ioa 是否使用 IoA 计算重叠度
+     * @return 过滤后的检测结果
+     */
+    std::vector<Global::YoloDetectBox> filter_target_on_ref(
+        const std::vector<Global::YoloDetectBox> &detect_boxes,
+        int target_id,
+        int ref_id,
+        float threshold = 0.7f,
+        bool use_ioa = true);
 
 }
 

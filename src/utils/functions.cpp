@@ -87,25 +87,30 @@ namespace detect_utils
      */
     std::map<int, std::vector<Global::YoloDetectBox>> classify_box_by_class(const std::vector<Global::YoloDetectBox> &detect_boxes)
     {
-        std::map<int, std::vector<Global::YoloDetectBox>> class_boxes;
+        std::map<int, std::vector<Global::YoloDetectBox>> classified_boxes;
         for (const auto &box : detect_boxes)
         {
-            class_boxes[box.class_id].push_back(box);
+            classified_boxes[box.class_id].push_back(box);
         }
-        return class_boxes;
+        return classified_boxes;
     }
 
     /**
      * @brief 合并同类别检测结果
-     * @param class_boxes 按类别 ID 分组的检测结果
+     * @param classified_boxes 按类别 ID 分组的检测结果
      * @return 合并后的检测结果
      */
-    std::vector<Global::YoloDetectBox> merge_classified_boxes(const std::map<int, std::vector<Global::YoloDetectBox>> &class_boxes)
+    std::vector<Global::YoloDetectBox> merge_classified_boxes(const std::map<int, std::vector<Global::YoloDetectBox>> &classified_boxes)
     {
         std::vector<Global::YoloDetectBox> merged_boxes;
-        for (const auto &[class_id, boxes]: class_boxes)
+        int total_size = 0;
+        for (auto const &[id, boxes] : classified_boxes)
+            total_size += boxes.size();
+        merged_boxes.reserve(total_size);
+
+        for (const auto &[class_id, boxes] : classified_boxes)
         {
-            merged_boxes.insert(merged_boxes.end(), class_boxes.begin(), class_boxes.end());
+            merged_boxes.insert(merged_boxes.end(), boxes.begin(), boxes.end());
         }
         return merged_boxes;
     }
@@ -171,6 +176,8 @@ namespace detect_utils
      * @param target_boxes 待过滤的目标列表
      * @param reference_boxes 作为参考的目标列表
      * @param threshold 重叠度阈值，大于此值的 target_box 会被忽略
+     * @param use_ioa 是否使用 IoA 计算重叠度
+     * @return 过滤后的检测结果
      */
     std::vector<Global::YoloDetectBox> filter_boxes_by_reference(
         const std::vector<Global::YoloDetectBox> &target_boxes,
@@ -183,7 +190,7 @@ namespace detect_utils
 
         for (const auto &target_box : target_boxes)
         {
-            bool should_ignore = false;
+            bool should_save = true;
 
             // 拿当前 target_box 去和所有的 reference_box 比较
             for (const auto &ref_box : reference_boxes)
@@ -200,19 +207,54 @@ namespace detect_utils
 
                 if (iou_or_ioa > threshold)
                 {
-                    should_ignore = true;
+                    should_save = false;
                     break; // 只要和其中一个重叠度超标，就忽略它，不用再往后比了
                 }
             }
 
             // 如果没有被忽略，则保留下来
-            if (!should_ignore)
+            if (should_save)
             {
                 filtered_boxes.push_back(target_box);
             }
         }
 
         return filtered_boxes;
+    }
+
+    /**
+     * @brief 通过一个类别过滤掉另一个类别
+     * @param detect_boxes 检测结果
+     * @param target_id 要过滤的类别 ID
+     * @param ref_id 参考类别 ID
+     * @param threshold 重叠度阈值，大于此值的 target_box 会被忽略
+     * @param use_ioa 是否使用 IoA 计算重叠度
+     * @return 过滤后的检测结果
+     */
+    std::vector<Global::YoloDetectBox> filter_target_on_ref(
+        const std::vector<Global::YoloDetectBox> &detect_boxes,
+        int target_id,
+        int ref_id,
+        float threshold,
+        bool use_ioa)
+    {
+        if (detect_boxes.size() < 2)
+            return detect_boxes;
+
+        if (target_id == ref_id)
+            return detect_boxes;
+
+        auto classified_boxes = classify_box_by_class(detect_boxes);
+
+        auto it_target = classified_boxes.find(target_id);
+        auto it_ref = classified_boxes.find(ref_id);
+
+        if (it_target != classified_boxes.end() && it_ref != classified_boxes.end())
+        {
+            it_target->second = filter_boxes_by_reference(it_target->second, it_ref->second, threshold, use_ioa);
+        }
+
+        return merge_classified_boxes(classified_boxes);
     }
 
 }
