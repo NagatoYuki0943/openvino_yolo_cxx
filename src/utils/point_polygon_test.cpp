@@ -8,36 +8,36 @@
 namespace detect_utils
 {
 
-    // 主功能函数
-    // 参数 1: boxes - YOLO检测框的集合
-    // 参数 2: polygon - 表示多边形顶点的集合 (OpenCV 格式)
-    // 返回值: 在多边形内的检测框在原始 vector 中的索引 (Index)
-    std::vector<int> filter_boxes_in_polygon(
+    /**
+     * @brief 在多边形区域内过滤 YOLO 检测框
+     * @param boxes YOLO 检测框的集合 (std::vector<Global::YoloDetectBox>)
+     * @param polygon 表示多边形顶点的集合 (std::vector<cv::Point>)
+     * @return 在多边形内的检测框集合 (std::vector<Global::YoloDetectBox>)
+     */
+    std::vector<Global::YoloDetectBox> filter_boxes_in_polygon(
         const std::vector<Global::YoloDetectBox> &boxes,
         const std::vector<cv::Point> &polygon)
     {
-        std::vector<int> inside_indices;
+        std::vector<Global::YoloDetectBox> inside_boxes;
 
         if (boxes.empty())
-            return inside_indices;
+            return inside_boxes;
 
-        // 如果多边形顶点少于 3 个，无法构成有效区域
+        // 如果多边形顶点少于 3 个，无法构成有效区域，保持原逻辑：视为全部在内部
         if (polygon.size() < 3)
         {
-            for (size_t i = 0; i < boxes.size(); ++i)
-            {
-                inside_indices.push_back(i);
-            }
-            return inside_indices;
+            return boxes; // 直接返回原列表的拷贝
         }
 
-        for (size_t i = 0; i < boxes.size(); ++i)
+        // 提前预留内存，避免 push_back 时频繁重新分配内存
+        inside_boxes.reserve(boxes.size());
+
+        for (const auto &box : boxes)
         {
             // 计算 YOLO 检测框的中心点
-            // 注意：cv::pointPolygonTest 推荐传入 cv::Point2f 类型的点
             cv::Point2f center(
-                (boxes[i].left + boxes[i].right) / 2.0f,
-                (boxes[i].top + boxes[i].bottom) / 2.0f);
+                (box.left + box.right) / 2.0f,
+                (box.top + box.bottom) / 2.0f);
 
             // 调用 OpenCV 的点多边形测试函数
             // 参数 measureDist = false: 只返回拓扑位置（1 在内部，0 在边界，-1 在外部）
@@ -45,10 +45,13 @@ namespace detect_utils
 
             // 包含在内部 (result > 0) 或正好在边界上 (result == 0)
             if (result >= 0)
-                inside_indices.push_back(i);
+            {
+                // 将符合条件的框存入新的 vector
+                inside_boxes.push_back(box);
+            }
         }
 
-        return inside_indices;
+        return inside_boxes;
     }
 
     /**
@@ -64,23 +67,12 @@ namespace detect_utils
         const cv::Scalar &color,
         const int thickness)
     {
-        // 1. 数据检查：至少需要 2 个点才能画线（虽然 3 个点才能构成封闭平面）
         if (polygon_points.size() < 2)
             return;
 
-        // 2. 准备 cv::polylines 所需的数据结构
-        // cv::polylines 接收的是一个“多边形列表”，即 vector<vector<Point>>。
-        // 即使我们只画一个多边形，也需要把它包装进一层 vector 中。
         std::vector<std::vector<cv::Point>> polylines_data;
         polylines_data.push_back(polygon_points);
 
-        // 3. 调用函数绘制
-        // 参数 1: 目标图像
-        // 参数 2: 顶点数组的数组
-        // 参数 3: 是否封闭 (true 代表自动收尾相连)
-        // 参数 4: 颜色
-        // 参数 5: 线条粗细
-        // 参数 6: 线条类型 (LINE_AA 代表抗锯齿，线条更平滑)
         cv::polylines(image, polylines_data, true, color, thickness, cv::LINE_AA);
     }
 
@@ -114,47 +106,46 @@ namespace detect_utils
         // 框6：中心点 (700, 300) -> 应该在多边形外 (右下角空白处)
         boxes.push_back({4, "bus", 0.6f, 650, 250, 750, 350});
 
-        // 4. 执行检测算法，获取在区域内的框的索引
-        std::vector<int> inside_indices = filter_boxes_in_polygon(boxes, my_polygon);
+        // 4. 执行检测算法，获取在区域内的检测框
+        std::vector<Global::YoloDetectBox> inside_boxes = filter_boxes_in_polygon(boxes, my_polygon);
 
         // 5. 可视化绘制
         // 5.1 绘制多边形边框 (黄色)
         cv::Scalar poly_color(0, 255, 255);
         draw_closed_polygon(test_img, my_polygon, poly_color, 3);
 
-        // 5.2 遍历所有检测框并绘制
-        for (size_t i = 0; i < boxes.size(); ++i)
+        // 5.2 遍历所有原始检测框并绘制
+        for (const auto &box : boxes)
         {
-            const auto &box = boxes[i];
-
-            // 计算中心点用于画圆
             cv::Point center(
                 (box.left + box.right) / 2,
                 (box.top + box.bottom) / 2);
 
-            // 判断当前框是否在 inside_indices 列表中
-            bool is_inside = std::find(inside_indices.begin(), inside_indices.end(), i) != inside_indices.end();
+            // 通过匹配坐标来判断当前框是否在过滤后的结果中
+            bool is_inside = false;
+            for (const auto &in_box : inside_boxes)
+            {
+                if (box.left == in_box.left && box.top == in_box.top &&
+                    box.right == in_box.right && box.bottom == in_box.bottom)
+                {
+                    is_inside = true;
+                    break;
+                }
+            }
 
             // 设定颜色：内部为绿色，外部为红色 (BGR格式)
             cv::Scalar box_color = is_inside ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
 
-            // 绘制矩形框
             cv::rectangle(test_img, cv::Point(box.left, box.top), cv::Point(box.right, box.bottom), box_color, 2, cv::LINE_AA);
-
-            // 绘制实心中心点 (半径为4，-1代表实心填充)
             cv::circle(test_img, center, 4, box_color, -1, cv::LINE_AA);
-
-            // 绘制 Track ID 文本
-            std::string label = box.class_name;
-            cv::putText(test_img, label, cv::Point(box.left, box.top - 5),
+            cv::putText(test_img, box.class_name, cv::Point(box.left, box.top - 5),
                         cv::FONT_HERSHEY_SIMPLEX, 0.6, box_color, 2, cv::LINE_AA);
         }
 
-        // 6. 保存结果
+        // 6. 保存与显示结果
         cv::imwrite("test_filter_boxes_in_polygon.jpg", test_img);
         std::cout << "Saved test_filter_boxes_in_polygon.jpg" << std::endl;
 
-        // 7. 显示结果
         cv::imshow("YOLO Polygon Detection", test_img);
         cv::waitKey(0);
     }

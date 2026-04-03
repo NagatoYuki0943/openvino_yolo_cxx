@@ -11,11 +11,13 @@
 namespace detect_utils
 {
 
-    // 主功能函数
-    // 参数 1: boxes - YOLO检测框的集合
-    // 参数 2: polygon - 表示多边形顶点的集合 (OpenCV 格式)
-    // 返回值: 在多边形内的检测框在原始 vector 中的索引 (Index)
-    std::vector<int> filter_boxes_in_polygon(
+    /**
+     * @brief 在多边形区域内过滤 YOLO 检测框
+     * @param boxes YOLO 检测框的集合 (std::vector<Global::YoloDetectBox>)
+     * @param polygon 表示多边形顶点的集合 (std::vector<cv::Point>)
+     * @return 在多边形内的检测框集合 (std::vector<Global::YoloDetectBox>)
+     */
+    std::vector<Global::YoloDetectBox> filter_boxes_in_polygon(
         const std::vector<Global::YoloDetectBox> &boxes,
         const std::vector<cv::Point> &polygon);
 

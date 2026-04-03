@@ -62,24 +62,12 @@ int predict_image(const Global::GereralConfig &config, const std::string &image_
             cv::Point(50, 1000),
             cv::Point(250, 800),
             cv::Point(100, 700)};
-        auto inside_indices = detect_utils::filter_boxes_in_polygon(detect_boxes, polygon);
-
-        std::cout << "inside_indices size: " << inside_indices.size() << std::endl;
-        std::cout << "inside_indices: [";
-        for (int i : inside_indices)
-        {
-            std::cout << i << ", ";
-        }
-        std::cout << "]" << std::endl;
+        auto inside_boxes = detect_utils::filter_boxes_in_polygon(detect_boxes, polygon);
+        std::cout << "inside_boxes num = " << inside_boxes.size() << std::endl;
 
         // 绘制多边形
         detect_utils::draw_closed_polygon(draw_image, polygon);
-
-        std::vector<Global::YoloDetectBox> filtered_boxes;
-        filtered_boxes.reserve(inside_indices.size());
-        for (int orig_idx : inside_indices)
-            filtered_boxes.push_back(std::move(detect_boxes[orig_idx]));
-        detect_boxes = std::move(filtered_boxes);
+        detect_boxes = std::move(inside_boxes);
     }
 
     detect_utils::draw_detected_object(draw_image, detect_boxes);
