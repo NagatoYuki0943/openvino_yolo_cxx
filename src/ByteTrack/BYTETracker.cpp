@@ -303,6 +303,48 @@ namespace ByteTrack
         // 5.4 剔除可能存在的重复轨迹 (通常基于 IoU 去重，防止同一个目标产生了多条轨迹)
         remove_duplicate_stracks(resa, resb, this->tracked_stracks, this->lost_stracks);
 
+        // ================== 【关键修复 1：揪出被去重暗杀的 Tracked 目标】 ==================
+        for (int i = 0; i < this->tracked_stracks.size(); i++)
+        {
+            bool is_survived = false;
+            // 在存活名单 (resa) 中寻找它
+            for (int j = 0; j < resa.size(); j++)
+            {
+                if (this->tracked_stracks[i].track_id == resa[j].track_id)
+                {
+                    is_survived = true;
+                    break;
+                }
+            }
+            // 如果它没活下来（被去重干掉了），那就必须送去火化 (Removed)
+            if (!is_survived)
+            {
+                this->tracked_stracks[i].mark_removed();
+                frame_removed_stracks.push_back(this->tracked_stracks[i]); // 加入本帧死亡名单
+            }
+        }
+
+        // ================== 【关键修复 2：揪出被去重暗杀的 Lost 目标】 ==================
+        for (int i = 0; i < this->lost_stracks.size(); i++)
+        {
+            bool is_survived = false;
+            // 在存活名单 (resb) 中寻找它
+            for (int j = 0; j < resb.size(); j++)
+            {
+                if (this->lost_stracks[i].track_id == resb[j].track_id)
+                {
+                    is_survived = true;
+                    break;
+                }
+            }
+            // 如果 Lost 目标被去重干掉了，也必须发死亡通知！
+            if (!is_survived)
+            {
+                this->lost_stracks[i].mark_removed();
+                frame_removed_stracks.push_back(this->lost_stracks[i]); // 加入本帧死亡名单
+            }
+        }
+
         this->tracked_stracks.clear();
         this->tracked_stracks.assign(resa.begin(), resa.end());
         this->lost_stracks.clear();
