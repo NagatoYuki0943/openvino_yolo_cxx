@@ -53,7 +53,6 @@ namespace ByteTrack
         double lapjv(const std::vector<std::vector<float>> &cost, std::vector<int> &rowsol, std::vector<int> &colsol,
                      bool extend_cost = false, float cost_limit = LONG_MAX, bool return_cost = true);
 
-    private:
         int max_time_lost; // Number of frames allowable to go missing
         float track_high_thresh;
         float track_low_thresh;
@@ -61,6 +60,7 @@ namespace ByteTrack
         float match_thresh;
         int min_hits; // 只有连续检测到 N 帧才输出
 
+    private:
         int frame_id;
 
         std::vector<STrack> tracked_stracks;
