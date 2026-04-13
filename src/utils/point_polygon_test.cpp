@@ -14,7 +14,7 @@ namespace detect_utils
      * @param polygon 表示多边形顶点的集合 (std::vector<cv::Point>)
      * @return 在多边形内的检测框 index 集合 (std::vector<int>)
      */
-    std::vector<int> filter_boxe_ids_in_polygon(
+    std::vector<int> filter_box_ids_in_polygon(
         const std::vector<Global::YoloDetectBox> &boxes,
         const std::vector<cv::Point> &polygon)
     {
