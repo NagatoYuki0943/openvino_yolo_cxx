@@ -1,5 +1,4 @@
 #include "STrack.h"
-#include <cstdint>
 
 namespace ByteTrack
 {
@@ -205,9 +204,9 @@ namespace ByteTrack
         state = TrackState::Removed;
     }
 
-    uint64_t STrack::next_id()
+    std::uint64_t STrack::next_id()
     {
-        static uint64_t _count = 1;
+        static std::uint64_t _count = 1;
         _count++;
         return _count;
     }

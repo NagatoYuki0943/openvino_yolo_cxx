@@ -2,7 +2,6 @@
 #define GLOBAL_VARS_HPP
 #pragma once
 
-#include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
@@ -12,14 +11,14 @@ namespace Global
 {
     struct YoloDetectBox
     {
-        int class_id;           // 类别 id
-        std::string class_name; // 类别名称
-        float confidence;       // 置信度
-        int left;               // 左上角 x 坐标
-        int top;                // 左上角 y 坐标
-        int right;              // 右下角 x 坐标
-        int bottom;             // 右下角 y 坐标
-        uint64_t track_id = 0;  // 追踪 id, 0 代表没有追踪
+        int class_id;               // 类别 id
+        std::string class_name;     // 类别名称
+        float confidence;           // 置信度
+        int left;                   // 左上角 x 坐标
+        int top;                    // 左上角 y 坐标
+        int right;                  // 右下角 x 坐标
+        int bottom;                 // 右下角 y 坐标
+        std::uint64_t track_id = 0; // 追踪 id, 0 代表没有追踪
     };
 
     inline std::map<int, std::string> default_classes = {
