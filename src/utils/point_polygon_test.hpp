@@ -23,6 +23,20 @@ namespace detect_utils
     };
 
     /**
+     * @brief box 多边形测试
+     * @param box YOLO 检测框
+     * @param polygon 顶点集合
+     * @param filter_location 筛选位置
+     * @param measureDist 是否返回距离
+     * @return 拓扑位置 (-1: 在外部，0: 在边界，1: 在内部)
+     */
+    double boxPolygonTest(
+        const Global::YoloDetectBox &box,
+        const std::vector<cv::Point> &polygon,
+        const FilterLocation filter_location = FilterLocation::Center,
+        bool measureDist = false);
+
+    /**
      * @brief 在多边形区域内过滤 YOLO 检测框
      * @param boxes YOLO 检测框的集合 (std::vector<Global::YoloDetectBox>)
      * @param polygon 表示多边形顶点的集合 (std::vector<cv::Point>)

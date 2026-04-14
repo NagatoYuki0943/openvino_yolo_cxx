@@ -9,6 +9,74 @@ namespace detect_utils
 {
 
     /**
+     * @brief box 多边形测试
+     * @param box YOLO 检测框
+     * @param polygon 顶点集合
+     * @param filter_location 筛选位置
+     * @param measureDist 是否返回距离
+     * @return 拓扑位置 (-1: 在外部，0: 在边界，1: 在内部)
+     */
+    double boxPolygonTest(
+        const Global::YoloDetectBox &box,
+        const std::vector<cv::Point> &polygon,
+        const FilterLocation filter_location,
+        bool measureDist)
+    {
+        cv::Point2f point;
+
+        if (filter_location == FilterLocation::Center)
+        {
+            point = {(box.left + box.right) / 2.0f,
+                     (box.top + box.bottom) / 2.0f};
+        }
+        else if (filter_location == FilterLocation::LeftCenter)
+        {
+            point = {box.left * 1.0f,
+                     (box.top + box.bottom) / 2.0f};
+        }
+        else if (filter_location == FilterLocation::RightCenter)
+        {
+            point = {box.right * 1.0f,
+                     (box.top + box.bottom) / 2.0f};
+        }
+        else if (filter_location == FilterLocation::TopCenter)
+        {
+            point = {(box.left + box.right) / 2.0f,
+                     box.top * 1.0f};
+        }
+        else if (filter_location == FilterLocation::BottomCenter)
+        {
+            point = {(box.left + box.right) / 2.0f,
+                     box.bottom * 1.0f};
+        }
+        else if (filter_location == FilterLocation::LeftTop)
+        {
+            point = {box.left * 1.0f,
+                     box.top * 1.0f};
+        }
+        else if (filter_location == FilterLocation::RightTop)
+        {
+            point = {box.right * 1.0f,
+                     box.top * 1.0f};
+        }
+        else if (filter_location == FilterLocation::LeftBottom)
+        {
+            point = {box.left * 1.0f,
+                     box.bottom * 1.0f};
+        }
+        else if (filter_location == FilterLocation::RightBottom)
+        {
+            point = {box.right * 1.0f,
+                     box.bottom * 1.0f};
+        }
+
+        // 调用 OpenCV 的点多边形测试函数
+        // 参数 measureDist = false: 只返回拓扑位置（1 在内部，0 在边界，-1 在外部）
+        double result = cv::pointPolygonTest(polygon, point, measureDist);
+        return result;
+    }
+
+    /**
      * @brief 在多边形区域内过滤 YOLO 检测框
      * @param boxes YOLO 检测框的集合 (std::vector<Global::YoloDetectBox>)
      * @param polygon 表示多边形顶点的集合 (std::vector<cv::Point>)
@@ -44,57 +112,7 @@ namespace detect_utils
         {
             auto &box = boxes[i];
 
-            cv::Point2f point;
-
-            if (filter_location == FilterLocation::Center)
-            {
-                point = {(box.left + box.right) / 2.0f,
-                         (box.top + box.bottom) / 2.0f};
-            }
-            else if (filter_location == FilterLocation::LeftCenter)
-            {
-                point = {box.left * 1.0f,
-                         (box.top + box.bottom) / 2.0f};
-            }
-            else if (filter_location == FilterLocation::RightCenter)
-            {
-                point = {box.right * 1.0f,
-                         (box.top + box.bottom) / 2.0f};
-            }
-            else if (filter_location == FilterLocation::TopCenter)
-            {
-                point = {(box.left + box.right) / 2.0f,
-                         box.top * 1.0f};
-            }
-            else if (filter_location == FilterLocation::BottomCenter)
-            {
-                point = {(box.left + box.right) / 2.0f,
-                         box.bottom * 1.0f};
-            }
-            else if (filter_location == FilterLocation::LeftTop)
-            {
-                point = {box.left * 1.0f,
-                         box.top * 1.0f};
-            }
-            else if (filter_location == FilterLocation::RightTop)
-            {
-                point = {box.right * 1.0f,
-                         box.top * 1.0f};
-            }
-            else if (filter_location == FilterLocation::LeftBottom)
-            {
-                point = {box.left * 1.0f,
-                         box.bottom * 1.0f};
-            }
-            else if (filter_location == FilterLocation::RightBottom)
-            {
-                point = {box.right * 1.0f,
-                         box.bottom * 1.0f};
-            }
-
-            // 调用 OpenCV 的点多边形测试函数
-            // 参数 measureDist = false: 只返回拓扑位置（1 在内部，0 在边界，-1 在外部）
-            double result = cv::pointPolygonTest(polygon, point, false);
+            auto result = boxPolygonTest(box, polygon, filter_location, false);
 
             // 包含在内部 (result > 0) 或正好在边界上 (result == 0)
             if (inside && result >= 0)
@@ -138,57 +156,7 @@ namespace detect_utils
 
         for (const auto &box : boxes)
         {
-            cv::Point2f point;
-
-            if (filter_location == FilterLocation::Center)
-            {
-                point = {(box.left + box.right) / 2.0f,
-                         (box.top + box.bottom) / 2.0f};
-            }
-            else if (filter_location == FilterLocation::LeftCenter)
-            {
-                point = {box.left * 1.0f,
-                         (box.top + box.bottom) / 2.0f};
-            }
-            else if (filter_location == FilterLocation::RightCenter)
-            {
-                point = {box.right * 1.0f,
-                         (box.top + box.bottom) / 2.0f};
-            }
-            else if (filter_location == FilterLocation::TopCenter)
-            {
-                point = {(box.left + box.right) / 2.0f,
-                         box.top * 1.0f};
-            }
-            else if (filter_location == FilterLocation::BottomCenter)
-            {
-                point = {(box.left + box.right) / 2.0f,
-                         box.bottom * 1.0f};
-            }
-            else if (filter_location == FilterLocation::LeftTop)
-            {
-                point = {box.left * 1.0f,
-                         box.top * 1.0f};
-            }
-            else if (filter_location == FilterLocation::RightTop)
-            {
-                point = {box.right * 1.0f,
-                         box.top * 1.0f};
-            }
-            else if (filter_location == FilterLocation::LeftBottom)
-            {
-                point = {box.left * 1.0f,
-                         box.bottom * 1.0f};
-            }
-            else if (filter_location == FilterLocation::RightBottom)
-            {
-                point = {box.right * 1.0f,
-                         box.bottom * 1.0f};
-            }
-
-            // 调用 OpenCV 的点多边形测试函数
-            // 参数 measureDist = false: 只返回拓扑位置（1 在内部，0 在边界，-1 在外部）
-            double result = cv::pointPolygonTest(polygon, point, false);
+            auto result = boxPolygonTest(box, polygon, filter_location, false);
 
             // 包含在内部 (result > 0) 或正好在边界上 (result == 0)
             if (inside && result >= 0)
