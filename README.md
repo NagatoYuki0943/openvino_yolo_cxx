@@ -10,6 +10,18 @@
 
 > 目标追踪使用了 [junhui-ng/ByteTrack-CPP: C++ implementation of ByteTrack algorithm](https://github.com/junhui-ng/ByteTrack-CPP) 项目源码
 
+# 配置
+
+需要配置 `CMakePresets.json` 中的依赖库的 cmake 路径
+
+```json
+            "cacheVariables": {
+                "OpenVINO_DIR": "C:/cxx/OpenVINO/runtime/cmake",
+                "OpenCV_DIR": "C:/cxx/opencv/build",
+                "Eigen3_DIR": "C:/cxx/eigen3_install/share/eigen3/cmake",
+                "CMAKE_PREFIX_PATH": "C:/miniconda3/envs/cxx/Library",
+            },
+```
 
 # 编译好的程序使用方式
 
