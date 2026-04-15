@@ -131,6 +131,12 @@ int predict_video(const Global::GereralConfig &config, const std::string &video_
         auto detect_boxes = inference.infer(frame, config.detect_config.conf_threshold, config.detect_config.nms_threshold);
         std::cout << "detect_boxes size: " << detect_boxes.size() << std::endl;
 
+        // 记录帧ID
+        for (auto &box : detect_boxes)
+        {
+            box.frame_id = frame_count;
+        }
+
         // 将检测框绘制到当前帧上
         detect_utils::draw_detected_object(frame, detect_boxes);
 
@@ -255,6 +261,12 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         auto detect_boxes = inference.infer(frame, config.detect_config.conf_threshold, config.detect_config.nms_threshold);
         std::cout << "detect_boxes size: " << detect_boxes.size() << std::endl;
 
+        // 记录帧ID
+        for (auto &box : detect_boxes)
+        {
+            box.frame_id = frame_count;
+        }
+
         // 追踪
         std::vector<Global::YoloDetectBox> track_boxes;
         track_boxes.reserve(detect_boxes.size());
@@ -378,6 +390,12 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                 }
             }
             std::cout << std::endl;
+        }
+
+        // 记录帧ID
+        for (auto &box : track_boxes)
+        {
+            box.frame_id = frame_count;
         }
 
         // 将检测框绘制到当前帧上

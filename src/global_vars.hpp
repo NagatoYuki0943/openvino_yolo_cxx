@@ -19,6 +19,7 @@ namespace Global
         int right;                  // 右下角 x 坐标
         int bottom;                 // 右下角 y 坐标
         std::uint64_t track_id = 0; // 追踪 id, 0 代表没有追踪
+        std::uint64_t frame_id = 0; // 帧 id
     };
 
     inline std::map<int, std::string> default_classes = {
