@@ -19,12 +19,12 @@ namespace byte_kalman
         int ndim = 4;
         double dt = 1.;
 
-        _motion_mat = Eigen::MatrixXf::Identity(8, 8);
+        this->_motion_mat = Eigen::MatrixXf::Identity(8, 8);
         for (int i = 0; i < ndim; i++)
         {
-            _motion_mat(i, ndim + i) = dt;
+            this->_motion_mat(i, ndim + i) = dt;
         }
-        _update_mat = Eigen::MatrixXf::Identity(4, 8);
+        this->_update_mat = Eigen::MatrixXf::Identity(4, 8);
 
         this->_std_weight_position = 1. / 20;
         this->_std_weight_velocity = 1. / 10;
@@ -48,21 +48,21 @@ namespace byte_kalman
 
         KAL_MEAN std;
         // x_center    2 × w_pos × h    x 中心位置不确定性
-        std(0) = 2 * _std_weight_position * measurement[3];
+        std(0) = 2 * this->_std_weight_position * measurement[3];
         // y_center
         // y_center    2 × w_pos × h    y 中心位置不确定性
-        std(1) = 2 * _std_weight_position * measurement[3];
+        std(1) = 2 * this->_std_weight_position * measurement[3];
         // aspect_ratio    0.1         宽高比不确定性
         // std(2) = 1e-2;
         // std(2) = 0.1;
         // 【修改点 1】: width 宽度不确定性，依赖于初始宽度的像素值
-        std(2) = 2 * _std_weight_position * measurement[2];
+        std(2) = 2 * this->_std_weight_position * measurement[2];
         // height    2 × w_pos × h    高度不确定性
-        std(3) = 2 * _std_weight_position * measurement[3];
+        std(3) = 2 * this->_std_weight_position * measurement[3];
         // vx    10 × w_vel × h    x 速度不确定性
-        std(4) = 10 * _std_weight_velocity * measurement[3];
+        std(4) = 10 * this->_std_weight_velocity * measurement[3];
         // vy    10 × w_vel × h    y 速度不确定性
-        std(5) = 10 * _std_weight_velocity * measurement[3];
+        std(5) = 10 * this->_std_weight_velocity * measurement[3];
         // v_aspect_ratio    1e-5    宽高比变化率不确定性
         // std(6) = 1e-5;
         // std(6) = 0.001;
@@ -70,9 +70,9 @@ namespace byte_kalman
         // std(6) = 0.01;
         // std(6) = 0.1 * _std_weight_velocity * measurement[3];
         // 【修改点 2】: v_width 宽度变化率不确定性，依赖于宽度的像素值
-        std(6) = 10 * _std_weight_velocity * measurement[2];
+        std(6) = 10 * this->_std_weight_velocity * measurement[2];
         // v_height    10 × w_vel × h    高度变化率不确定性
-        std(7) = 10 * _std_weight_velocity * measurement[3];
+        std(7) = 10 * this->_std_weight_velocity * measurement[3];
 
         KAL_MEAN tmp = std.array().square();
         KAL_COVA var = tmp.asDiagonal();
@@ -84,18 +84,18 @@ namespace byte_kalman
         // revise the data;
         DETECTBOX std_pos;
         // 【修改点 3】: 将第三个参数（原 1e-2）替换为与宽度 mean(2) 相关的动态噪声
-        std_pos << _std_weight_position * mean(3),
-            _std_weight_position * mean(3),
+        std_pos << this->_std_weight_position * mean(3),
+            this->_std_weight_position * mean(3),
             // 1e-2,
-            _std_weight_position * mean(2),
-            _std_weight_position * mean(3);
+            this->_std_weight_position * mean(2),
+            this->_std_weight_position * mean(3);
         DETECTBOX std_vel;
         // 【修改点 4】: 将第三个参数（原 1e-5）替换为与宽度 mean(2) 相关的动态噪声
-        std_vel << _std_weight_velocity * mean(3),
-            _std_weight_velocity * mean(3),
+        std_vel << this->_std_weight_velocity * mean(3),
+            this->_std_weight_velocity * mean(3),
             // 1e-5,
-            _std_weight_velocity * mean(2),
-            _std_weight_velocity * mean(3);
+            this->_std_weight_velocity * mean(2),
+            this->_std_weight_velocity * mean(3);
         KAL_MEAN tmp;
         tmp.block<1, 4>(0, 0) = std_pos;
         tmp.block<1, 4>(0, 4) = std_vel;

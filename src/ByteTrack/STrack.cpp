@@ -40,13 +40,13 @@ namespace ByteTrack
         _tlwh_tmp[1] = this->_tlwh[1];
         _tlwh_tmp[2] = this->_tlwh[2];
         _tlwh_tmp[3] = this->_tlwh[3];
-        std::vector<float> xyah = tlwh_to_xyah(_tlwh_tmp);
-        DETECTBOX xyah_box;
-        xyah_box[0] = xyah[0];
-        xyah_box[1] = xyah[1];
-        xyah_box[2] = xyah[2];
-        xyah_box[3] = xyah[3];
-        auto mc = this->kalman_filter.initiate(xyah_box);
+        std::vector<float> xywh = tlwh_to_xywh(_tlwh_tmp);
+        DETECTBOX xywh_box;
+        xywh_box[0] = xywh[0];
+        xywh_box[1] = xywh[1];
+        xywh_box[2] = xywh[2];
+        xywh_box[3] = xywh[3];
+        auto mc = this->kalman_filter.initiate(xywh_box);
         this->mean = mc.first;
         this->covariance = mc.second;
 
@@ -82,13 +82,13 @@ namespace ByteTrack
 
     void STrack::re_activate(STrack &new_track, int frame_id, bool new_id)
     {
-        std::vector<float> xyah = tlwh_to_xyah(new_track.tlwh);
-        DETECTBOX xyah_box;
-        xyah_box[0] = xyah[0];
-        xyah_box[1] = xyah[1];
-        xyah_box[2] = xyah[2];
-        xyah_box[3] = xyah[3];
-        auto mc = this->kalman_filter.update(this->mean, this->covariance, xyah_box);
+        std::vector<float> xywh = tlwh_to_xywh(new_track.tlwh);
+        DETECTBOX xywh_box;
+        xywh_box[0] = xywh[0];
+        xywh_box[1] = xywh[1];
+        xywh_box[2] = xywh[2];
+        xywh_box[3] = xywh[3];
+        auto mc = this->kalman_filter.update(this->mean, this->covariance, xywh_box);
         this->mean = mc.first;
         this->covariance = mc.second;
 
@@ -113,14 +113,14 @@ namespace ByteTrack
         this->tracklet_len++;
         this->_hits++; // 每匹配到一次，计数加 1
 
-        std::vector<float> xyah = tlwh_to_xyah(new_track.tlwh);
-        DETECTBOX xyah_box;
-        xyah_box[0] = xyah[0];
-        xyah_box[1] = xyah[1];
-        xyah_box[2] = xyah[2];
-        xyah_box[3] = xyah[3];
+        std::vector<float> xywh = tlwh_to_xywh(new_track.tlwh);
+        DETECTBOX xywh_box;
+        xywh_box[0] = xywh[0];
+        xywh_box[1] = xywh[1];
+        xywh_box[2] = xywh[2];
+        xywh_box[3] = xywh[3];
 
-        auto mc = this->kalman_filter.update(this->mean, this->covariance, xyah_box);
+        auto mc = this->kalman_filter.update(this->mean, this->covariance, xywh_box);
         this->mean = mc.first;
         this->covariance = mc.second;
 
@@ -173,7 +173,7 @@ namespace ByteTrack
         tlbr[3] += tlbr[1];
     }
 
-    std::vector<float> STrack::tlwh_to_xyah(std::vector<float> tlwh_tmp)
+    std::vector<float> STrack::tlwh_to_xywh(std::vector<float> tlwh_tmp)
     {
         std::vector<float> tlwh_output = tlwh_tmp;
         tlwh_output[0] += tlwh_output[2] / 2; // x_center
@@ -182,9 +182,9 @@ namespace ByteTrack
         return tlwh_output;
     }
 
-    std::vector<float> STrack::to_xyah()
+    std::vector<float> STrack::to_xywh()
     {
-        return tlwh_to_xyah(tlwh);
+        return tlwh_to_xywh(tlwh);
     }
 
     std::vector<float> STrack::tlbr_to_tlwh(std::vector<float> &tlbr)

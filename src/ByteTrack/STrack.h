@@ -26,8 +26,8 @@ namespace ByteTrack
         void static multi_predict(std::vector<STrack *> &stracks, byte_kalman::KalmanFilter &kalman_filter);
         void static_tlwh();
         void static_tlbr();
-        std::vector<float> tlwh_to_xyah(std::vector<float> tlwh_tmp);
-        std::vector<float> to_xyah();
+        std::vector<float> tlwh_to_xywh(std::vector<float> tlwh_tmp);
+        std::vector<float> to_xywh();
         void mark_lost();
         void mark_removed();
         std::uint64_t next_id();
