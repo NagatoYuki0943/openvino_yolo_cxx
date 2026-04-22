@@ -74,7 +74,7 @@ namespace ByteTrack
 
     void BYTETracker::remove_duplicate_stracks(std::vector<STrack> &resa, std::vector<STrack> &resb, std::vector<STrack> &stracksa, std::vector<STrack> &stracksb)
     {
-        std::vector<std::vector<float>> pdist = iou_distance(stracksa, stracksb);
+        std::vector<std::vector<float>> pdist = this->iou_distance(stracksa, stracksb);
         std::vector<std::pair<int, int>> pairs;
         for (int i = 0; i < pdist.size(); i++)
         {
@@ -135,7 +135,7 @@ namespace ByteTrack
 
         std::vector<int> rowsol;
         std::vector<int> colsol;
-        float c = lapjv(cost_matrix, rowsol, colsol, true, thresh);
+        float c = this->lapjv(cost_matrix, rowsol, colsol, true, thresh);
         for (int i = 0; i < rowsol.size(); i++)
         {
             if (rowsol[i] >= 0)
@@ -230,7 +230,7 @@ namespace ByteTrack
         dist_size = atracks.size();
         dist_size_size = btracks.size();
 
-        std::vector<std::vector<float>> _ious = ious(atlbrs, btlbrs);
+        std::vector<std::vector<float>> _ious = this->ious(atlbrs, btlbrs);
 
         for (int i = 0; i < _ious.size(); i++)
         {
@@ -265,7 +265,7 @@ namespace ByteTrack
             btlbrs.push_back(btracks[i].tlbr);
         }
 
-        std::vector<std::vector<float>> _ious = ious(atlbrs, btlbrs);
+        std::vector<std::vector<float>> _ious = this->ious(atlbrs, btlbrs);
         std::vector<std::vector<float>> cost_matrix;
         for (int i = 0; i < _ious.size(); i++)
         {

@@ -5,24 +5,24 @@ namespace ByteTrack
 
     STrack::STrack(std::vector<float> tlwh_, float score, int class_id, int target_id)
     {
-        _tlwh.resize(4);
-        _tlwh.assign(tlwh_.begin(), tlwh_.end());
+        this->_tlwh.resize(4);
+        this->_tlwh.assign(tlwh_.begin(), tlwh_.end());
 
-        is_activated = false;
-        track_id = 0;
-        state = TrackState::New;
+        this->is_activated = false;
+        this->track_id = 0;
+        this->state = TrackState::New;
 
-        tlwh.resize(4);
-        tlbr.resize(4);
+        this->tlwh.resize(4);
+        this->tlbr.resize(4);
 
-        static_tlwh();
-        static_tlbr();
-        frame_id = 0;
-        tracklet_len = 0;
+        this->static_tlwh();
+        this->static_tlbr();
+        this->frame_id = 0;
+        this->tracklet_len = 0;
         this->score = score;
         this->class_id = class_id;
         this->target_id = target_id;
-        start_frame = 0;
+        this->start_frame = 0;
     }
 
     STrack::~STrack()
@@ -40,7 +40,7 @@ namespace ByteTrack
         _tlwh_tmp[1] = this->_tlwh[1];
         _tlwh_tmp[2] = this->_tlwh[2];
         _tlwh_tmp[3] = this->_tlwh[3];
-        std::vector<float> xywh = tlwh_to_xywh(_tlwh_tmp);
+        std::vector<float> xywh = this->tlwh_to_xywh(_tlwh_tmp);
         DETECTBOX xywh_box;
         xywh_box[0] = xywh[0];
         xywh_box[1] = xywh[1];
@@ -50,8 +50,8 @@ namespace ByteTrack
         this->mean = mc.first;
         this->covariance = mc.second;
 
-        static_tlwh();
-        static_tlbr();
+        this->static_tlwh();
+        this->static_tlbr();
 
         this->tracklet_len = 0;
         this->state = TrackState::Tracked;
@@ -82,7 +82,7 @@ namespace ByteTrack
 
     void STrack::re_activate(STrack &new_track, int frame_id, bool new_id)
     {
-        std::vector<float> xywh = tlwh_to_xywh(new_track.tlwh);
+        std::vector<float> xywh = this->tlwh_to_xywh(new_track.tlwh);
         DETECTBOX xywh_box;
         xywh_box[0] = xywh[0];
         xywh_box[1] = xywh[1];
@@ -92,8 +92,8 @@ namespace ByteTrack
         this->mean = mc.first;
         this->covariance = mc.second;
 
-        static_tlwh();
-        static_tlbr();
+        this->static_tlwh();
+        this->static_tlbr();
 
         this->tracklet_len = 0;
         this->state = TrackState::Tracked;
@@ -104,7 +104,7 @@ namespace ByteTrack
         this->target_id = new_track.target_id;
 
         if (new_id)
-            this->track_id = next_id();
+            this->track_id = this->next_id();
     }
 
     void STrack::update(STrack &new_track, int frame_id, int min_hits)
@@ -113,7 +113,7 @@ namespace ByteTrack
         this->tracklet_len++;
         this->_hits++; // 每匹配到一次，计数加 1
 
-        std::vector<float> xywh = tlwh_to_xywh(new_track.tlwh);
+        std::vector<float> xywh = this->tlwh_to_xywh(new_track.tlwh);
         DETECTBOX xywh_box;
         xywh_box[0] = xywh[0];
         xywh_box[1] = xywh[1];
@@ -124,8 +124,8 @@ namespace ByteTrack
         this->mean = mc.first;
         this->covariance = mc.second;
 
-        static_tlwh();
-        static_tlbr();
+        this->static_tlwh();
+        this->static_tlbr();
 
         this->state = TrackState::Tracked;
 
@@ -147,30 +147,30 @@ namespace ByteTrack
     {
         if (this->state == TrackState::New)
         {
-            tlwh[0] = _tlwh[0];
-            tlwh[1] = _tlwh[1];
-            tlwh[2] = _tlwh[2];
-            tlwh[3] = _tlwh[3];
+            this->tlwh[0] = this->_tlwh[0];
+            this->tlwh[1] = this->_tlwh[1];
+            this->tlwh[2] = this->_tlwh[2];
+            this->tlwh[3] = this->_tlwh[3];
             return;
         }
 
-        tlwh[0] = mean[0];
-        tlwh[1] = mean[1];
-        tlwh[2] = mean[2];
-        tlwh[3] = mean[3];
+        this->tlwh[0] = this->mean[0];
+        this->tlwh[1] = this->mean[1];
+        this->tlwh[2] = this->mean[2];
+        this->tlwh[3] = this->mean[3];
 
         // 上面直接使用 width, 这里不用再还原
-        // tlwh[2] *= tlwh[3];
-        tlwh[0] -= tlwh[2] / 2;
-        tlwh[1] -= tlwh[3] / 2;
+        // this->tlwh[2] *= this->tlwh[3];
+        this->tlwh[0] -= this->tlwh[2] / 2;
+        this->tlwh[1] -= this->tlwh[3] / 2;
     }
 
     void STrack::static_tlbr()
     {
-        tlbr.clear();
-        tlbr.assign(tlwh.begin(), tlwh.end());
-        tlbr[2] += tlbr[0];
-        tlbr[3] += tlbr[1];
+        this->tlbr.clear();
+        this->tlbr.assign(this->tlwh.begin(), this->tlwh.end());
+        this->tlbr[2] += this->tlbr[0];
+        this->tlbr[3] += this->tlbr[1];
     }
 
     std::vector<float> STrack::tlwh_to_xywh(std::vector<float> tlwh_tmp)
@@ -184,24 +184,25 @@ namespace ByteTrack
 
     std::vector<float> STrack::to_xywh()
     {
-        return tlwh_to_xywh(tlwh);
+        return this->tlwh_to_xywh(this->tlwh);
     }
 
     std::vector<float> STrack::tlbr_to_tlwh(std::vector<float> &tlbr)
     {
-        tlbr[2] -= tlbr[0];
-        tlbr[3] -= tlbr[1];
-        return tlbr;
+        std::vector<float> tlwh = tlbr;
+        tlwh[2] -= tlwh[0];
+        tlwh[3] -= tlwh[1];
+        return tlwh;
     }
 
     void STrack::mark_lost()
     {
-        state = TrackState::Lost;
+        this->state = TrackState::Lost;
     }
 
     void STrack::mark_removed()
     {
-        state = TrackState::Removed;
+        this->state = TrackState::Removed;
     }
 
     std::uint64_t STrack::next_id()
@@ -232,7 +233,7 @@ namespace ByteTrack
 
     cv::Scalar STrack::get_color() const
     {
-        int idx = track_id + 3;
+        int idx = this->track_id + 3;
         return cv::Scalar(37 * idx % 255, 17 * idx % 255, 29 * idx % 255);
     }
 

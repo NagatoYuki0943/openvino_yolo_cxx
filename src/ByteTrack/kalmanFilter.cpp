@@ -102,7 +102,7 @@ namespace byte_kalman
         tmp = tmp.array().square();
         KAL_COVA motion_cov = tmp.asDiagonal();
         KAL_MEAN mean1 = this->_motion_mat * mean.transpose();
-        KAL_COVA covariance1 = this->_motion_mat * covariance * (_motion_mat.transpose());
+        KAL_COVA covariance1 = this->_motion_mat * covariance * (this->_motion_mat.transpose());
         covariance1 += motion_cov;
 
         mean = mean1;
@@ -113,13 +113,13 @@ namespace byte_kalman
     {
         DETECTBOX std;
         // 【修改点 5】: 将第三个参数（原 1e-1）替换为与宽度 mean(2) 相关的动态噪声
-        std << _std_weight_position * mean(3),
-            _std_weight_position * mean(3),
+        std << this->_std_weight_position * mean(3),
+            this->_std_weight_position * mean(3),
             // 1e-1,
-            _std_weight_position * mean(2),
-            _std_weight_position * mean(3);
-        KAL_HMEAN mean1 = _update_mat * mean.transpose();
-        KAL_HCOVA covariance1 = _update_mat * covariance * (_update_mat.transpose());
+            this->_std_weight_position * mean(2),
+            this->_std_weight_position * mean(3);
+        KAL_HMEAN mean1 = this->_update_mat * mean.transpose();
+        KAL_HCOVA covariance1 = this->_update_mat * covariance * (this->_update_mat.transpose());
         Eigen::Matrix<float, 4, 4> diag = std.asDiagonal();
         diag = diag.array().square().matrix();
         covariance1 += diag;
@@ -133,7 +133,7 @@ namespace byte_kalman
         const KAL_COVA &covariance,
         const DETECTBOX &measurement)
     {
-        KAL_HDATA pa = project(mean, covariance);
+        KAL_HDATA pa = this->project(mean, covariance);
         KAL_HMEAN projected_mean = pa.first;
         KAL_HCOVA projected_cov = pa.second;
 
@@ -143,7 +143,7 @@ namespace byte_kalman
         // scipy.linalg.cho_solve((cho_factor, lower),
         // np.dot(covariance, self._upadte_mat.T).T,
         // check_finite=False).T
-        Eigen::Matrix<float, 4, 8> B = (covariance * (_update_mat.transpose())).transpose();
+        Eigen::Matrix<float, 4, 8> B = (covariance * (this->_update_mat.transpose())).transpose();
         Eigen::Matrix<float, 8, 4> kalman_gain = (projected_cov.llt().solve(B)).transpose(); // eg.8x4
         Eigen::Matrix<float, 1, 4> innovation = measurement - projected_mean;                // eg.1x4
         auto tmp = innovation * (kalman_gain.transpose());

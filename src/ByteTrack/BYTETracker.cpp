@@ -124,7 +124,7 @@ namespace ByteTrack
         //   目的是什么： 这是最符合直觉的一步。既然目标很清晰，历史轨迹也在，那就优先把最优质的检测结果分配给它们。
         //   遗留问题： 肯定会有一些老员工因为被遮挡，没匹配上高分框；也会有一些高分框，因为是新走进画面的目标，没有老员工去认领它。
         // 2.1 将稳定追踪的轨迹和丢失(Lost)的轨迹合并，作为第一轮匹配的目标池
-        strack_pool = joint_stracks(tracked_stracks, this->lost_stracks);
+        strack_pool = this->joint_stracks(tracked_stracks, this->lost_stracks);
 
         // 2.2 使用卡尔曼滤波器预测这些轨迹在当前帧的位置
         STrack::multi_predict(strack_pool, this->kalman_filter);
@@ -132,12 +132,12 @@ namespace ByteTrack
         // 2.3 计算预测位置与高分检测框之间的 IoU 距离矩阵 (代价矩阵)
         std::vector<std::vector<float>> dists;
         int dist_size = 0, dist_size_size = 0;
-        dists = iou_distance(strack_pool, detections, dist_size, dist_size_size);
+        dists = this->iou_distance(strack_pool, detections, dist_size, dist_size_size);
 
         // 2.4 使用匈牙利算法 (Linear Assignment) 进行最优二分图匹配
         std::vector<std::vector<int>> matches;
         std::vector<int> u_track, u_detection; // u_track: 未匹配上的轨迹, u_detection: 未匹配上的高分框
-        linear_assignment(dists, dist_size, dist_size_size, this->match_thresh, matches, u_track, u_detection);
+        this->linear_assignment(dists, dist_size, dist_size_size, this->match_thresh, matches, u_track, u_detection);
 
         // 2.5 处理第一轮成功匹配的结果
         for (int i = 0; i < matches.size(); i++)
@@ -183,13 +183,13 @@ namespace ByteTrack
 
         // 3.3 计算这些未匹配轨迹与“低分检测框”之间的 IoU 距离
         dists.clear();
-        dists = iou_distance(r_tracked_stracks, detections, dist_size, dist_size_size, false);
+        dists = this->iou_distance(r_tracked_stracks, detections, dist_size, dist_size_size, false);
 
         // 3.4 再次使用匈牙利算法匹配 (匹配阈值固定设为 0.5)
         matches.clear();
         u_track.clear();
         u_detection.clear();
-        linear_assignment(dists, dist_size, dist_size_size, this->low_match_thresh, matches, u_track, u_detection);
+        this->linear_assignment(dists, dist_size, dist_size_size, this->low_match_thresh, matches, u_track, u_detection);
 
         // 3.5 处理第二轮成功匹配的结果 (成功挽救了被遮挡的目标)
         for (int i = 0; i < matches.size(); i++)
@@ -230,13 +230,13 @@ namespace ByteTrack
         detections.assign(detections_cp.begin(), detections_cp.end()); // 拿出刚才备份的、第一轮没用掉的“高分框”
 
         dists.clear();
-        dists = iou_distance(unconfirmed, detections, dist_size, dist_size_size);
+        dists = this->iou_distance(unconfirmed, detections, dist_size, dist_size_size);
 
         matches.clear();
         std::vector<int> u_unconfirmed;
         u_detection.clear();
         // 匹配未确认轨迹与剩余高分框 (匹配阈值较严格，0.7)
-        linear_assignment(dists, dist_size, dist_size_size, this->unconfirmed_match_thresh, matches, u_unconfirmed, u_detection);
+        this->linear_assignment(dists, dist_size, dist_size_size, this->unconfirmed_match_thresh, matches, u_unconfirmed, u_detection);
 
         for (int i = 0; i < matches.size(); i++)
         {
@@ -289,11 +289,11 @@ namespace ByteTrack
         this->tracked_stracks.assign(tracked_stracks_swap.begin(), tracked_stracks_swap.end());
 
         // 将本帧新匹配成功、新创建的、以及重新找回的轨迹合并到 tracked_stracks 列表中
-        this->tracked_stracks = joint_stracks(this->tracked_stracks, activated_stracks);
-        this->tracked_stracks = joint_stracks(this->tracked_stracks, refind_stracks);
+        this->tracked_stracks = this->joint_stracks(this->tracked_stracks, activated_stracks);
+        this->tracked_stracks = this->joint_stracks(this->tracked_stracks, refind_stracks);
 
         // 5.3 从全局 lost 列表中，剔除掉本帧又被找回来 (Tracked) 的目标
-        this->lost_stracks = sub_stracks(this->lost_stracks, this->tracked_stracks);
+        this->lost_stracks = this->sub_stracks(this->lost_stracks, this->tracked_stracks);
 
         // 把本帧新【丢失】的目标，合并进类成员的全局 lost 列表
         for (int i = 0; i < frame_lost_stracks.size(); i++)
@@ -302,10 +302,10 @@ namespace ByteTrack
         }
 
         // 从全局 lost 列表中，彻底剔除掉本帧被【抹杀】的目标
-        this->lost_stracks = sub_stracks(this->lost_stracks, frame_removed_stracks);
+        this->lost_stracks = this->sub_stracks(this->lost_stracks, frame_removed_stracks);
 
         // 5.4 剔除可能存在的重复轨迹 (通常基于 IoU 去重，防止同一个目标产生了多条轨迹)
-        remove_duplicate_stracks(resa, resb, this->tracked_stracks, this->lost_stracks);
+        this->remove_duplicate_stracks(resa, resb, this->tracked_stracks, this->lost_stracks);
 
         // ================== 【关键修复 1：揪出被去重暗杀的 Tracked 目标】 ==================
         for (int i = 0; i < this->tracked_stracks.size(); i++)
