@@ -501,6 +501,7 @@ int main(int argc, char *argv[])
     else if (mode == "filter_boxes")
     {
         detect_utils::test_filter_boxes_by_polygon();
+        detect_utils::test_calc_polygons_iou();
         res = predict_image(config, image_path, true);
     }
     else

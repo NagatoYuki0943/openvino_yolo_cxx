@@ -30,11 +30,23 @@ namespace detect_utils
      * @param measureDist 是否返回距离
      * @return 拓扑位置 (-1: 在外部，0: 在边界，1: 在内部)
      */
-    double boxPolygonTest(
+    double box_polygon_test(
         const Global::YoloDetectBox &box,
         const std::vector<cv::Point> &polygon,
         const FilterLocation filter_location = FilterLocation::Center,
         bool measureDist = false);
+
+    /**
+     * @brief 计算两个点集的 IOU
+     * @param points1 第一个点集
+     * @param points2 第二个点集
+     * @param use_ioa 是否使用 IOA (bool，默认为 false), IOA 指的是交的面积占 points2 的面积
+     * @return IOU 或 IOA 值
+     */
+    double calc_polygons_iou(
+        const std::vector<cv::Point> &points1,
+        const std::vector<cv::Point> &points2,
+        const bool use_ioa = false);
 
     /**
      * @brief 在多边形区域内过滤 YOLO 检测框
@@ -79,6 +91,7 @@ namespace detect_utils
 
     void test_filter_boxes_by_polygon();
 
+    void test_calc_polygons_iou();
 }
 
 #endif // POINT_POLYGON_TEST_HPP
