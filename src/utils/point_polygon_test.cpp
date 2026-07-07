@@ -77,27 +77,27 @@ namespace detect_utils
     }
 
     /**
-     * @brief 计算两个点集的 IOU
-     * @param points1 第一个点集
-     * @param points2 第二个点集
-     * @param use_ioa 是否使用 IOA (bool，默认为 false), IOA 指的是交的面积占 points2 的面积
+     * @brief 计算两个区域的 IOU
+     * @param polygon1 第一个区域
+     * @param polygon2 第二个区域
+     * @param use_ioa 是否使用 IOA (bool，默认为 false), IOA 指的是交的面积占 polygon2 的面积
      * @return IOU 或 IOA 值
      */
     double calc_polygons_iou(
-        const std::vector<cv::Point> &points1,
-        const std::vector<cv::Point> &points2,
+        const std::vector<cv::Point> &polygon1,
+        const std::vector<cv::Point> &polygon2,
         const bool use_ioa)
     {
         // 至少需要 3 个点才能构成有效多边形
-        if (points1.size() < 3 || points2.size() < 3)
+        if (polygon1.size() < 3 || polygon2.size() < 3)
         {
             return 0.0;
         }
 
         // 连续几何面积为 0 的情况，直接返回 0
         // 避免一堆共线点被 fillPoly 填成奇怪的像素线段面积
-        const double area1 = std::abs(cv::contourArea(points1));
-        const double area2 = std::abs(cv::contourArea(points2));
+        const double area1 = std::abs(cv::contourArea(polygon1));
+        const double area2 = std::abs(cv::contourArea(polygon2));
 
         if (area1 <= 1e-6 || area2 <= 1e-6)
         {
@@ -105,8 +105,8 @@ namespace detect_utils
         }
 
         // 计算两个点集共同的外接区域，避免创建整张大图
-        cv::Rect rect1 = cv::boundingRect(points1);
-        cv::Rect rect2 = cv::boundingRect(points2);
+        cv::Rect rect1 = cv::boundingRect(polygon1);
+        cv::Rect rect2 = cv::boundingRect(polygon2);
         cv::Rect roi = rect1 | rect2;
 
         if (roi.width <= 0 || roi.height <= 0)
@@ -136,8 +136,8 @@ namespace detect_utils
             return shifted;
         };
 
-        std::vector<cv::Point> shifted1 = shift_points(points1);
-        std::vector<cv::Point> shifted2 = shift_points(points2);
+        std::vector<cv::Point> shifted1 = shift_points(polygon1);
+        std::vector<cv::Point> shifted2 = shift_points(polygon2);
 
         cv::Mat mask1(mask_size, CV_8UC1, cv::Scalar(0));
         cv::Mat mask2(mask_size, CV_8UC1, cv::Scalar(0));
@@ -157,7 +157,7 @@ namespace detect_utils
 
         if (use_ioa)
         {
-            // IOA = intersection / area(points2)
+            // IOA = intersection / area(polygon2)
             denom = static_cast<double>(cv::countNonZero(mask2));
         }
         else
@@ -377,13 +377,13 @@ namespace detect_utils
         cv::Mat test_img = cv::Mat::zeros(600, 800, CV_8UC3);
 
         // 2. 定义两个多边形的顶点
-        std::vector<cv::Point> points1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(300, 300), cv::Point(100, 300)};
-        std::vector<cv::Point> points2 = {cv::Point(200, 200), cv::Point(400, 200), cv::Point(400, 400), cv::Point(200, 400)};
+        std::vector<cv::Point> polygon1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(300, 300), cv::Point(100, 300)};
+        std::vector<cv::Point> polygon2 = {cv::Point(200, 200), cv::Point(400, 200), cv::Point(400, 400), cv::Point(200, 400)};
 
         // 3. 计算两个多边形的 IOU
         // 第1组
-        double iou = calc_polygons_iou(points1, points2);
-        double ioa = calc_polygons_iou(points1, points2, true);
+        double iou = calc_polygons_iou(polygon1, polygon2);
+        double ioa = calc_polygons_iou(polygon1, polygon2, true);
         std::cout << "IOU: " << iou << std::endl;
         std::cout << "IOA: " << ioa << std::endl;
 
@@ -391,8 +391,8 @@ namespace detect_utils
         cv::Scalar poly_color1(0, 255, 255);
         // 粉色
         cv::Scalar poly_color2(255, 0, 255);
-        draw_closed_polygon(test_img, points1, poly_color1, 2);
-        draw_closed_polygon(test_img, points2, poly_color2, 2);
+        draw_closed_polygon(test_img, polygon1, poly_color1, 2);
+        draw_closed_polygon(test_img, polygon2, poly_color2, 2);
 
         std::string classString = "IOU: " + std::to_string(iou) + ", IOA: " + std::to_string(ioa);
         cv::putText(test_img, classString, cv::Point(500, 500), cv::FONT_HERSHEY_SIMPLEX, 0.6, {255, 255, 255}, 1, cv::LINE_AA);
@@ -405,15 +405,15 @@ namespace detect_utils
 
         // 第2组
         test_img = cv::Mat::zeros(600, 800, CV_8UC3);
-        points1 = {cv::Point(200, 0), cv::Point(400, 0), cv::Point(400, 500), cv::Point(200, 500)};
-        points2 = {cv::Point(100, 200), cv::Point(300, 200), cv::Point(300, 100), cv::Point(500, 100), cv::Point(500, 300), cv::Point(300, 300), cv::Point(300, 400), cv::Point(100, 400)};
-        iou = calc_polygons_iou(points1, points2);
-        ioa = calc_polygons_iou(points1, points2, true);
+        polygon1 = {cv::Point(200, 0), cv::Point(400, 0), cv::Point(400, 500), cv::Point(200, 500)};
+        polygon2 = {cv::Point(100, 200), cv::Point(300, 200), cv::Point(300, 100), cv::Point(500, 100), cv::Point(500, 300), cv::Point(300, 300), cv::Point(300, 400), cv::Point(100, 400)};
+        iou = calc_polygons_iou(polygon1, polygon2);
+        ioa = calc_polygons_iou(polygon1, polygon2, true);
         std::cout << "IOU: " << iou << std::endl;
         std::cout << "IOA: " << ioa << std::endl;
 
-        draw_closed_polygon(test_img, points1, poly_color1, 2);
-        draw_closed_polygon(test_img, points2, poly_color2, 2);
+        draw_closed_polygon(test_img, polygon1, poly_color1, 2);
+        draw_closed_polygon(test_img, polygon2, poly_color2, 2);
 
         classString = "IOU: " + std::to_string(iou) + ", IOA: " + std::to_string(ioa);
         cv::putText(test_img, classString, cv::Point(500, 500), cv::FONT_HERSHEY_SIMPLEX, 0.6, {255, 255, 255}, 1, cv::LINE_AA);
@@ -426,15 +426,15 @@ namespace detect_utils
 
         // 第3组
         test_img = cv::Mat::zeros(600, 800, CV_8UC3);
-        points1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(100, 300)};
-        points2 = {cv::Point(300, 100), cv::Point(300, 300), cv::Point(100, 300)};
-        iou = calc_polygons_iou(points1, points2);
-        ioa = calc_polygons_iou(points1, points2, true);
+        polygon1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(100, 300)};
+        polygon2 = {cv::Point(300, 100), cv::Point(300, 300), cv::Point(100, 300)};
+        iou = calc_polygons_iou(polygon1, polygon2);
+        ioa = calc_polygons_iou(polygon1, polygon2, true);
         std::cout << "IOU: " << iou << std::endl;
         std::cout << "IOA: " << ioa << std::endl;
 
-        draw_closed_polygon(test_img, points1, poly_color1, 2);
-        draw_closed_polygon(test_img, points2, poly_color2, 2);
+        draw_closed_polygon(test_img, polygon1, poly_color1, 2);
+        draw_closed_polygon(test_img, polygon2, poly_color2, 2);
 
         classString = "IOU: " + std::to_string(iou) + ", IOA: " + std::to_string(ioa);
         cv::putText(test_img, classString, cv::Point(500, 500), cv::FONT_HERSHEY_SIMPLEX, 0.6, {255, 255, 255}, 1, cv::LINE_AA);
@@ -447,15 +447,15 @@ namespace detect_utils
 
         // 第4组
         test_img = cv::Mat::zeros(600, 800, CV_8UC3);
-        points1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(100, 300)};
-        points2 = {cv::Point(400, 100), cv::Point(400, 300), cv::Point(200, 300)};
-        iou = calc_polygons_iou(points1, points2);
-        ioa = calc_polygons_iou(points1, points2, true);
+        polygon1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(100, 300)};
+        polygon2 = {cv::Point(400, 100), cv::Point(400, 300), cv::Point(200, 300)};
+        iou = calc_polygons_iou(polygon1, polygon2);
+        ioa = calc_polygons_iou(polygon1, polygon2, true);
         std::cout << "IOU: " << iou << std::endl;
         std::cout << "IOA: " << ioa << std::endl;
 
-        draw_closed_polygon(test_img, points1, poly_color1, 2);
-        draw_closed_polygon(test_img, points2, poly_color2, 2);
+        draw_closed_polygon(test_img, polygon1, poly_color1, 2);
+        draw_closed_polygon(test_img, polygon2, poly_color2, 2);
 
         classString = "IOU: " + std::to_string(iou) + ", IOA: " + std::to_string(ioa);
         cv::putText(test_img, classString, cv::Point(500, 500), cv::FONT_HERSHEY_SIMPLEX, 0.6, {255, 255, 255}, 1, cv::LINE_AA);

@@ -37,15 +37,15 @@ namespace detect_utils
         bool measureDist = false);
 
     /**
-     * @brief 计算两个点集的 IOU
-     * @param points1 第一个点集
-     * @param points2 第二个点集
-     * @param use_ioa 是否使用 IOA (bool，默认为 false), IOA 指的是交的面积占 points2 的面积
+     * @brief 计算两个区域的 IOU
+     * @param polygon1 第一个区域
+     * @param polygon2 第二个区域
+     * @param use_ioa 是否使用 IOA (bool，默认为 false)，IOA 指的是交的面积占 polygon2 的面积
      * @return IOU 或 IOA 值
      */
     double calc_polygons_iou(
-        const std::vector<cv::Point> &points1,
-        const std::vector<cv::Point> &points2,
+        const std::vector<cv::Point> &polygon1,
+        const std::vector<cv::Point> &polygon2,
         const bool use_ioa = false);
 
     /**
