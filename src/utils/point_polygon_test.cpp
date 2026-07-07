@@ -381,7 +381,7 @@ namespace detect_utils
         std::vector<cv::Point> points2 = {cv::Point(200, 200), cv::Point(400, 200), cv::Point(400, 400), cv::Point(200, 400)};
 
         // 3. 计算两个多边形的 IOU
-        // 第一组
+        // 第1组
         double iou = calc_polygons_iou(points1, points2);
         double ioa = calc_polygons_iou(points1, points2, true);
         std::cout << "IOU: " << iou << std::endl;
@@ -403,7 +403,7 @@ namespace detect_utils
         cv::imshow("test_calc_polygons_iou", test_img);
         cv::waitKey(0);
 
-        // 第二组
+        // 第2组
         test_img = cv::Mat::zeros(600, 800, CV_8UC3);
         points1 = {cv::Point(200, 0), cv::Point(400, 0), cv::Point(400, 500), cv::Point(200, 500)};
         points2 = {cv::Point(100, 200), cv::Point(300, 200), cv::Point(300, 100), cv::Point(500, 100), cv::Point(500, 300), cv::Point(300, 300), cv::Point(300, 400), cv::Point(100, 400)};
@@ -420,6 +420,48 @@ namespace detect_utils
 
         cv::imwrite("test_calc_polygons_iou2.jpg", test_img);
         std::cout << "Saved test_calc_polygons_iou2.jpg" << std::endl;
+
+        cv::imshow("test_calc_polygons_iou", test_img);
+        cv::waitKey(0);
+
+        // 第3组
+        test_img = cv::Mat::zeros(600, 800, CV_8UC3);
+        points1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(100, 300)};
+        points2 = {cv::Point(300, 100), cv::Point(300, 300), cv::Point(100, 300)};
+        iou = calc_polygons_iou(points1, points2);
+        ioa = calc_polygons_iou(points1, points2, true);
+        std::cout << "IOU: " << iou << std::endl;
+        std::cout << "IOA: " << ioa << std::endl;
+
+        draw_closed_polygon(test_img, points1, poly_color1, 2);
+        draw_closed_polygon(test_img, points2, poly_color2, 2);
+
+        classString = "IOU: " + std::to_string(iou) + ", IOA: " + std::to_string(ioa);
+        cv::putText(test_img, classString, cv::Point(500, 500), cv::FONT_HERSHEY_SIMPLEX, 0.6, {255, 255, 255}, 1, cv::LINE_AA);
+
+        cv::imwrite("test_calc_polygons_iou3.jpg", test_img);
+        std::cout << "Saved test_calc_polygons_iou3.jpg" << std::endl;
+
+        cv::imshow("test_calc_polygons_iou", test_img);
+        cv::waitKey(0);
+
+        // 第4组
+        test_img = cv::Mat::zeros(600, 800, CV_8UC3);
+        points1 = {cv::Point(100, 100), cv::Point(300, 100), cv::Point(100, 300)};
+        points2 = {cv::Point(400, 100), cv::Point(400, 300), cv::Point(200, 300)};
+        iou = calc_polygons_iou(points1, points2);
+        ioa = calc_polygons_iou(points1, points2, true);
+        std::cout << "IOU: " << iou << std::endl;
+        std::cout << "IOA: " << ioa << std::endl;
+
+        draw_closed_polygon(test_img, points1, poly_color1, 2);
+        draw_closed_polygon(test_img, points2, poly_color2, 2);
+
+        classString = "IOU: " + std::to_string(iou) + ", IOA: " + std::to_string(ioa);
+        cv::putText(test_img, classString, cv::Point(500, 500), cv::FONT_HERSHEY_SIMPLEX, 0.6, {255, 255, 255}, 1, cv::LINE_AA);
+
+        cv::imwrite("test_calc_polygons_iou4.jpg", test_img);
+        std::cout << "Saved test_calc_polygons_iou4.jpg" << std::endl;
 
         cv::imshow("test_calc_polygons_iou", test_img);
         cv::waitKey(0);
