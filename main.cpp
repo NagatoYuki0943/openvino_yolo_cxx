@@ -256,7 +256,7 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
     int frame_count = 0;
     std::cout << "Start processing video..." << std::endl;
 
-    // 4. 循环读取视频帧
+    // 5. 循环读取视频帧
     while (cap.read(frame))
     {
         if (frame.empty())
@@ -429,7 +429,7 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         std::cout << std::endl;
     }
 
-    // 5. 释放资源
+    // 6. 释放资源
     cap.release();
     writer.release();
     cv::destroyAllWindows();
