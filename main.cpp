@@ -277,15 +277,13 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         // 追踪
         std::vector<Global::YoloDetectBox> track_boxes;
         track_boxes.reserve(detect_boxes.size());
-
-        std::vector<ByteTrack::Object> track_objects = {};
-        std::vector<ByteTrack::STrack> tracklets = {};
-        std::vector<ByteTrack::STrack> lostTracklets = {};
-        std::vector<ByteTrack::STrack> removedTracklets = {};
-
         if (!enable_multi_class_tracking)
         {
             auto &tracker = trackers[0];
+            std::vector<ByteTrack::Object> track_objects = {};
+            std::vector<ByteTrack::STrack> tracklets = {};
+            std::vector<ByteTrack::STrack> lostTracklets = {};
+            std::vector<ByteTrack::STrack> removedTracklets = {};
             int index = 0;
             for (const auto &detect_box : detect_boxes)
             {
@@ -348,6 +346,11 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
                     std::cout << index << ", ";
                 }
                 std::cout << "]" << std::endl;
+
+                std::vector<ByteTrack::Object> track_objects = {};
+                std::vector<ByteTrack::STrack> tracklets = {};
+                std::vector<ByteTrack::STrack> lostTracklets = {};
+                std::vector<ByteTrack::STrack> removedTracklets = {};
 
                 // 转换格式
                 for (const auto &index : detect_indexes)
