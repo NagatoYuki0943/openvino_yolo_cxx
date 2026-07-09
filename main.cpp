@@ -457,7 +457,7 @@ int main(int argc, char *argv[])
     std::string mode = args[1];
     std::string config_path;
     std::string image_path;
-    if (args.size() > 2)
+    if (args.size() == 4)
     {
         config_path = args[2];
         image_path = args[3];
