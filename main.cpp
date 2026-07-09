@@ -9,6 +9,7 @@
 #include "ByteTrack/BYTETracker.h"
 #include "utils/functions.hpp"
 #include "utils/point_polygon_test.hpp"
+#include "utils/line_test.hpp"
 #include "global_vars.hpp"
 #include "global_funcs.hpp"
 
@@ -446,37 +447,30 @@ int main(int argc, char *argv[])
     std::cout << "    for predict video, usage: " << argv[0] << " predict_video <model_config_path> <video_path>" << std::endl;
     std::cout << "    for track video, usage: " << argv[0] << " track_video <model_config_path> <video_path> <0 or 1:enable_multi_class_tracking>" << std::endl;
     std::cout << "    for filter boxes by polygon(default box), usage: " << argv[0] << " filter_boxes <model_config_path> <image_path>" << std::endl;
+    std::cout << "    for test line function, usage: " << argv[0] << " test_line" << std::endl;
     std::cout << "============================================================" << std::endl;
 
     // std::cout << "argc: " << argc << std::endl;
     // std::cout << "program name: " << argv[0] << std::endl;
     std::vector<std::string> args(argv, argv + argc);
 
-    if (args.size() < 4)
-    {
-        std::cout << "Error: Insufficient arguments provided." << std::endl;
-        return -1;
-    }
-
     std::string mode = args[1];
-    std::string config_path = args[2];
-    std::string image_path = args[3];
+    std::string config_path;
+    std::string image_path;
+    if (args.size() > 2)
+    {
+        config_path = args[2];
+        image_path = args[3];
+    }
 
     std::cout << "mode: " << mode << std::endl;
     std::cout << "config_path: " << config_path << std::endl;
     std::cout << "image_path: " << image_path << std::endl;
 
-    if (!fs::exists(config_path))
+    Global::GereralConfig config;
+    if (fs::exists(config_path))
     {
-        std::cout << "config_path: " << config_path << " not exist" << std::endl;
-        return -1;
-    }
-    auto config = Global::read_config(config_path);
-
-    if (!fs::exists(image_path))
-    {
-        std::cout << "image_path/video_path: " << image_path << " not exist" << std::endl;
-        return -1;
+        config = Global::read_config(config_path);
     }
 
     int res = 0;
@@ -503,6 +497,12 @@ int main(int argc, char *argv[])
         detect_utils::test_filter_boxes_by_polygon();
         detect_utils::test_calc_polygons_iou();
         res = predict_image(config, image_path, true);
+    }
+    else if (mode == "test_line")
+    {
+        detect_utils::test_segments_intersect();
+        detect_utils::test_calc_line_angle();
+        res = 0;
     }
     else
     {
