@@ -131,6 +131,20 @@ namespace Global
         DetectConfig detect_config;
         TrackConfig track_config;
     };
+
+    enum class Direction
+    {
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT,
+        UP_LEFT,
+        UP_RIGHT,
+        DOWN_LEFT,
+        DOWN_RIGHT,
+        STOP,
+        NONE,
+    };
 }
 
 #endif // GLOBAL_VARS_HPP

@@ -249,6 +249,7 @@ int track_video(
     // 3. 判断线
     // 需要根据视频自定义
     std::vector<cv::Point> detect_points = {cv::Point(500, 500), cv::Point(1420, 500)};
+    auto in_direction = Global::Direction::DOWN;
     int in_number = 0;
     int out_number = 0;
 
@@ -478,11 +479,25 @@ int track_video(
                         auto angle = detect_utils::calc_line_angle(center1, center2, detect_utils::CoordSystem::Math);
                         if (angle >= 180)
                         {
-                            in_number++;
+                            if (in_direction == Global::Direction::DOWN)
+                            {
+                                in_number++;
+                            }
+                            else
+                            {
+                                out_number++;
+                            }
                         }
                         else
                         {
-                            out_number++;
+                            if (in_direction == Global::Direction::DOWN)
+                            {
+                                out_number++;
+                            }
+                            else
+                            {
+                                in_number++;
+                            }
                         }
                     }
                     // 不相交且之前已交叉
