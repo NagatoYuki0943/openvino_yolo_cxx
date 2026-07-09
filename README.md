@@ -32,7 +32,7 @@
 OpenVINO YOLO C++ Demo help:
     for predict image, usage: .\main.exe predict_image <model_config_path> <image_path>
     for predict video, usage: .\main.exe predict_video <model_config_path> <video_path>
-    for track video, usage: .\main.exetrack_video <model_config_path> <video_path> <0 or 1:enable_multi_class_tracking>
+    for track video, usage: .\main.exe track_video <model_config_path> <video_path> <0 or 1:enable_multi_class_tracking> <0 or 1:enable_line_detection>
     for filter boxes by polygon(default box), usage: .\main.exe filter_boxes <model_config_path> <image_path>
     for test line function, usage: .\main.exe test_line
 ============================================================

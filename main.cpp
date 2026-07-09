@@ -15,6 +15,13 @@
 
 namespace fs = std::filesystem;
 
+struct DetectResult
+{
+    std::deque<Global::YoloDetectBox> detect_box_history;
+    // 是否和检测线交叉
+    bool is_crossed = false;
+};
+
 int predict_image(const Global::GereralConfig &config, const std::string &image_path, bool filter_boxes_by_polygon = false)
 {
     std::string output_path = fs::path(image_path).stem().string() + "--predict.jpg";
@@ -169,10 +176,18 @@ int predict_video(const Global::GereralConfig &config, const std::string &video_
     return 0;
 }
 
-int track_video(const Global::GereralConfig &config, const std::string &video_path, bool enable_multi_class_tracking = true)
+int track_video(
+    const Global::GereralConfig &config,
+    const std::string &video_path,
+    bool enable_multi_class_tracking = true,
+    bool enable_line_detection = false)
 {
     std::string output_path = fs::path(video_path).stem().string() + "--track" + (enable_multi_class_tracking ? "--in_multi_class" : "--in_single_class") + ".mp4";
     std::cout << "save track video to " << output_path << std::endl;
+
+    // 追踪id 和追踪结果
+    std::map<std::uint64_t, DetectResult> track_id2track_context;
+    size_t detect_box_max_history_len = 30;
 
     // 1. 初始化 YOLO 推理
     yolo::OpenvinoYolo11DetInference inference = {
@@ -231,7 +246,13 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
     }
     std::cout << "trackers size: " << trackers.size() << std::endl;
 
-    // 3. 打开输入视频
+    // 3. 判断线
+    // 需要根据视频自定义
+    std::vector<cv::Point> detect_points = {cv::Point(500, 500), cv::Point(1420, 500)};
+    int in_number = 0;
+    int out_number = 0;
+
+    // 4. 打开输入视频
     cv::VideoCapture cap(video_path);
     if (!cap.isOpened())
     {
@@ -326,6 +347,14 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
 
                 track_boxes.push_back(box);
             }
+
+            // 删除丢失的 id
+            for (const auto &removedTracklet : removedTracklets)
+            {
+                track_id2track_context.erase(removedTracklet.track_id);
+            }
+
+            std::cout << std::endl;
         }
         else
         {
@@ -396,6 +425,12 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
 
                     track_boxes.push_back(box);
                 }
+
+                // 删除丢失的 id
+                for (const auto &removedTracklet : removedTracklets)
+                {
+                    track_id2track_context.erase(removedTracklet.track_id);
+                }
             }
             std::cout << std::endl;
         }
@@ -404,10 +439,72 @@ int track_video(const Global::GereralConfig &config, const std::string &video_pa
         for (auto &box : track_boxes)
         {
             box.frame_id = frame_count;
+            auto &track_context = track_id2track_context[box.track_id];
+            auto &detect_box_history = track_context.detect_box_history;
+            detect_box_history.push_back(box);
+            // 保持队列长度不超过最大配置限制
+            while (detect_box_history.size() > detect_box_max_history_len)
+            {
+                detect_box_history.pop_front();
+            }
+            std::cout << "track_id: " << box.track_id << " detect_box_history size: " << detect_box_history.size() << std::endl;
+
+            // 绘制检测检测历史
+            for (size_t i = 0; i < detect_box_history.size() - 1; i++)
+            {
+                auto &box1 = detect_box_history[i];
+                auto &box2 = detect_box_history[i + 1];
+                cv::Point center1 = {(box1.left + box1.right) / 2, (box1.top + box1.bottom) / 2};
+                cv::Point center2 = {(box2.left + box2.right) / 2, (box2.top + box2.bottom) / 2};
+                cv::line(frame, center1, center2, {0, 255, 0}, 2, cv::LINE_AA);
+            }
+            if (detect_box_history.size() > 5)
+            {
+                auto &box1 = detect_box_history[0];
+                auto &box2 = detect_box_history[detect_box_history.size() - 1];
+                cv::Point center1 = {(box1.left + box1.right) / 2, (box1.top + box1.bottom) / 2};
+                cv::Point center2 = {(box2.left + box2.right) / 2, (box2.top + box2.bottom) / 2};
+                cv::line(frame, center1, center2, {255, 0, 0}, 2, cv::LINE_AA);
+
+                if (enable_line_detection)
+                {
+                    // 判断规矩是否和检测线相交
+                    auto is_intersect = detect_utils::segments_intersect(center1, center2, detect_points[0], detect_points[1]);
+                    // 相交且之前未交叉
+                    if (is_intersect && !track_context.is_crossed)
+                    {
+                        track_context.is_crossed = true;
+                        // 判断角度
+                        auto angle = detect_utils::calc_line_angle(center1, center2, detect_utils::CoordSystem::Math);
+                        if (angle >= 180)
+                        {
+                            in_number++;
+                        }
+                        else
+                        {
+                            out_number++;
+                        }
+                    }
+                    // 不相交且之前已交叉
+                    else if (!is_intersect && track_context.is_crossed)
+                    {
+                        track_context.is_crossed = false;
+                    }
+                }
+            }
         }
 
         // 将检测框绘制到当前帧上
         detect_utils::draw_detected_object(frame, track_boxes);
+
+        if (enable_line_detection)
+        {
+            // 绘制检测线
+            cv::line(frame, detect_points[0], detect_points[1], {0, 0, 255}, 2, cv::LINE_AA);
+
+            cv::putText(frame, "in_number: " + std::to_string(in_number), cv::Point(10, 30), cv::FONT_HERSHEY_SIMPLEX, 1, {0, 69, 255}, 2);
+            cv::putText(frame, "out_number: " + std::to_string(out_number), cv::Point(10, 60), cv::FONT_HERSHEY_SIMPLEX, 1, {0, 69, 255}, 2);
+        }
 
         // 将处理后的帧写入输出视频文件
         writer.write(frame);
@@ -445,7 +542,7 @@ int main(int argc, char *argv[])
     std::cout << "OpenVINO YOLO C++ Demo help: " << std::endl;
     std::cout << "    for predict image, usage: " << argv[0] << " predict_image <model_config_path> <image_path>" << std::endl;
     std::cout << "    for predict video, usage: " << argv[0] << " predict_video <model_config_path> <video_path>" << std::endl;
-    std::cout << "    for track video, usage: " << argv[0] << " track_video <model_config_path> <video_path> <0 or 1:enable_multi_class_tracking>" << std::endl;
+    std::cout << "    for track video, usage: " << argv[0] << " track_video <model_config_path> <video_path> <0 or 1:enable_multi_class_tracking> <0 or 1:enable_line_detection>" << std::endl;
     std::cout << "    for filter boxes by polygon(default box), usage: " << argv[0] << " filter_boxes <model_config_path> <image_path>" << std::endl;
     std::cout << "    for test line function, usage: " << argv[0] << " test_line" << std::endl;
     std::cout << "============================================================" << std::endl;
@@ -457,7 +554,7 @@ int main(int argc, char *argv[])
     std::string mode = args[1];
     std::string config_path;
     std::string image_path;
-    if (args.size() == 4)
+    if (args.size() >= 4)
     {
         config_path = args[2];
         image_path = args[3];
@@ -484,13 +581,17 @@ int main(int argc, char *argv[])
     }
     else if (mode == "track_video")
     {
-        bool enable_multi_class_tracking = true;
+        bool enable_multi_class_tracking = false;
         if (args.size() > 4)
         {
             enable_multi_class_tracking = std::stoi(args[4]);
         }
-
-        res = track_video(config, image_path, enable_multi_class_tracking);
+        bool enable_line_detection = false;
+        if (args.size() > 5)
+        {
+            enable_line_detection = std::stoi(args[5]);
+        }
+        res = track_video(config, image_path, enable_multi_class_tracking, enable_line_detection);
     }
     else if (mode == "filter_boxes")
     {
