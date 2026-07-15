@@ -6,6 +6,42 @@
 
 namespace detect_utils
 {
+    constexpr double eps = 1e-12;
+
+    /**
+     * @brief 计算两个二维点之间的距离
+     * @param p1 第一个点
+     * @param p2 第二个点
+     * @return 返回两点之间的距离（double类型）
+     */
+    double calc_point_distance(
+        const cv::Point2d &p1,
+        const cv::Point2d &p2);
+
+    void test_calc_point_distance();
+
+    enum class ProjectionMode
+    {
+        InfiniteLine,  // 无限直线
+        ClampToSegment // 线段投影到线段上
+    };
+
+    /**
+     * @brief 计算点到线段的距离
+     * @param point 要计算距离的点
+     * @param segment_start 线段的起点
+     * @param segment_end 线段的终点
+     * @param projection_mode 投影模式，有 InfiniteLine 和 ClampToSegment 两种
+     * @return 返回点到线段的距离（double类型）
+     */
+    double calc_point_to_segment_distance(
+        const cv::Point2d &point,
+        const cv::Point2d &segment_start,
+        const cv::Point2d &segment_end,
+        const ProjectionMode projection_mode = ProjectionMode::InfiniteLine);
+
+    void test_calc_point_to_segment_distance();
+
     /**
      * @brief 这个函数计算的是由三个二维点 a、b、c 构成的两个向量 AB 和 AC 的二维叉乘（Cross Product）结果（即叉积在Z轴方向的标量值）。
      * @param a 第一个点
@@ -39,10 +75,12 @@ namespace detect_utils
         const cv::Point2d &q1,
         const cv::Point2d &q2);
 
+    void test_segments_intersect();
+
     enum class CoordSystem
     {
-        OpenCV,
-        Math
+        OpenCV, // OpenCV坐标系
+        Math    // Math坐标系
     };
 
     /**
@@ -56,8 +94,6 @@ namespace detect_utils
         const cv::Point2d &start,
         const cv::Point2d &end,
         const CoordSystem coord_system = CoordSystem::OpenCV);
-
-    void test_segments_intersect();
 
     void test_calc_line_angle();
 }
