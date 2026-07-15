@@ -141,19 +141,19 @@ namespace detect_utils
         std::vector<cv::Point2d> line6 = {cv::Point2d(300, 700), cv::Point2d(400, 600)};
 
         auto line1_2_is_intersect = segments_intersect(line1[0], line1[1], line2[0], line2[1]);
-        std::cout << "line1_2_is_intersect: " << line1_2_is_intersect << std::endl; //
+        std::cout << "line1 and line2 is intersect: " << line1_2_is_intersect << std::endl; //
 
         auto line1_3_is_intersect = segments_intersect(line1[0], line1[1], line3[0], line3[1]);
-        std::cout << "line1_3_is_intersect: " << line1_3_is_intersect << std::endl; //
+        std::cout << "line1 and line3 is intersect: " << line1_3_is_intersect << std::endl; //
 
         auto line1_4_is_intersect = segments_intersect(line1[0], line1[1], line4[0], line4[1]);
-        std::cout << "line1_4_is_intersect: " << line1_4_is_intersect << std::endl; //
+        std::cout << "line1 and line4 is intersect: " << line1_4_is_intersect << std::endl; //
 
         auto line1_5_is_intersect = segments_intersect(line1[0], line1[1], line5[0], line5[1]);
-        std::cout << "line1_5_is_intersect: " << line1_5_is_intersect << std::endl; //
+        std::cout << "line1 and line5 is intersect: " << line1_5_is_intersect << std::endl; //
 
         auto line1_6_is_intersect = segments_intersect(line1[0], line1[1], line6[0], line6[1]);
-        std::cout << "line1_6_is_intersect: " << line1_6_is_intersect << std::endl; //
+        std::cout << "line1 and line6 is intersect: " << line1_6_is_intersect << std::endl; //
 
         cv::Mat test_img = cv::Mat::zeros(800, 1000, CV_8UC3);
 
@@ -206,35 +206,35 @@ namespace detect_utils
 
         auto line1_cv_coord_angle = calc_line_angle(line1[0], line1[1]);
         auto line1_math_coord_angle = calc_line_angle(line1[0], line1[1], CoordSystem::Math);
-        std::cout << "line1_cv_coord_angle: " << line1_cv_coord_angle << ", line1_math_coord_angle: " << line1_math_coord_angle << std::endl;
+        std::cout << "line1 cv_coord_angle: " << line1_cv_coord_angle << ", math_coord_angle: " << line1_math_coord_angle << std::endl;
 
         auto line2_cv_coord_angle = calc_line_angle(line2[0], line2[1]);
         auto line2_math_coord_angle = calc_line_angle(line2[0], line2[1], CoordSystem::Math);
-        std::cout << "line2_cv_coord_angle: " << line2_cv_coord_angle << ", line2_math_coord_angle: " << line2_math_coord_angle << std::endl;
+        std::cout << "line2 cv_coord_angle: " << line2_cv_coord_angle << ", math_coord_angle: " << line2_math_coord_angle << std::endl;
 
         auto line3_cv_coord_angle = calc_line_angle(line3[0], line3[1]);
         auto line3_math_coord_angle = calc_line_angle(line3[0], line3[1], CoordSystem::Math);
-        std::cout << "line3_cv_coord_angle: " << line3_cv_coord_angle << ", line3_math_coord_angle: " << line3_math_coord_angle << std::endl;
+        std::cout << "line3 cv_coord_angle: " << line3_cv_coord_angle << ", math_coord_angle: " << line3_math_coord_angle << std::endl;
 
         auto line4_cv_coord_angle = calc_line_angle(line4[0], line4[1]);
         auto line4_math_coord_angle = calc_line_angle(line4[0], line4[1], CoordSystem::Math);
-        std::cout << "line4_cv_coord_angle: " << line4_cv_coord_angle << ", line4_math_coord_angle: " << line4_math_coord_angle << std::endl;
+        std::cout << "line4 cv_coord_angle: " << line4_cv_coord_angle << ", math_coord_angle: " << line4_math_coord_angle << std::endl;
 
         auto line5_cv_coord_angle = calc_line_angle(line5[0], line5[1]);
         auto line5_math_coord_angle = calc_line_angle(line5[0], line5[1], CoordSystem::Math);
-        std::cout << "line5_cv_coord_angle: " << line5_cv_coord_angle << ", line5_math_coord_angle: " << line5_math_coord_angle << std::endl;
+        std::cout << "line5 cv_coord_angle: " << line5_cv_coord_angle << ", math_coord_angle: " << line5_math_coord_angle << std::endl;
 
         auto line6_cv_coord_angle = calc_line_angle(line6[0], line6[1]);
         auto line6_math_coord_angle = calc_line_angle(line6[0], line6[1], CoordSystem::Math);
-        std::cout << "line6_cv_coord_angle: " << line6_cv_coord_angle << ", line6_math_coord_angle: " << line6_math_coord_angle << std::endl;
+        std::cout << "line6 cv_coord_angle: " << line6_cv_coord_angle << ", math_coord_angle: " << line6_math_coord_angle << std::endl;
 
         auto line7_cv_coord_angle = calc_line_angle(line7[0], line7[1]);
         auto line7_math_coord_angle = calc_line_angle(line7[0], line7[1], CoordSystem::Math);
-        std::cout << "line7_cv_coord_angle: " << line7_cv_coord_angle << ", line7_math_coord_angle: " << line7_math_coord_angle << std::endl;
+        std::cout << "line7 cv_coord_angle: " << line7_cv_coord_angle << ", math_coord_angle: " << line7_math_coord_angle << std::endl;
 
         auto line8_cv_coord_angle = calc_line_angle(line8[0], line8[1]);
         auto line8_math_coord_angle = calc_line_angle(line8[0], line8[1], CoordSystem::Math);
-        std::cout << "line8_cv_coord_angle: " << line8_cv_coord_angle << ", line8_math_coord_angle: " << line8_math_coord_angle << std::endl;
+        std::cout << "line8 cv_coord_angle: " << line8_cv_coord_angle << ", math_coord_angle: " << line8_math_coord_angle << std::endl;
 
         cv::Mat test_img = cv::Mat::zeros(800, 1400, CV_8UC3);
 
