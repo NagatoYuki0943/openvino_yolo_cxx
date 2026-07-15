@@ -85,17 +85,17 @@ namespace detect_utils
 
     /**
      * @brief 计算两个点之间的角度
-     * @param start 起始点
-     * @param end 终止点
+     * @param segment_start 起始点
+     * @param segment_end 终止点
      * @param coord_system 坐标系类型（OpenCV或Math）
      * @return 返回角度（度）
      */
-    double calc_line_angle(
-        const cv::Point2d &start,
-        const cv::Point2d &end,
+    double calc_segment_angle(
+        const cv::Point2d &segment_start,
+        const cv::Point2d &segment_end,
         const CoordSystem coord_system = CoordSystem::OpenCV);
 
-    void test_calc_line_angle();
+    void test_calc_segment_angle();
 }
 
 #endif // CV_MATH_HPP

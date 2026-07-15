@@ -479,7 +479,7 @@ int track_video(
             {
                 track_context.is_crossed = true;
                 // 判断角度
-                auto angle = detect_utils::calc_line_angle(center1, center2, detect_utils::CoordSystem::Math);
+                auto angle = detect_utils::calc_segment_angle(center1, center2, detect_utils::CoordSystem::Math);
                 if (angle >= 180)
                 {
                     if (in_direction == Global::Direction::DOWN)
@@ -620,7 +620,7 @@ int main(int argc, char *argv[])
         detect_utils::test_calc_point_distance();
         detect_utils::test_calc_point_to_segment_distance();
         detect_utils::test_segments_intersect();
-        detect_utils::test_calc_line_angle();
+        detect_utils::test_calc_segment_angle();
         res = 0;
     }
     else

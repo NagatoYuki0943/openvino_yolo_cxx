@@ -289,18 +289,18 @@ namespace detect_utils
 
     /**
      * @brief 计算两个点之间的角度
-     * @param start 起始点
-     * @param end 终止点
+     * @param segment_start 起始点
+     * @param segment_end 终止点
      * @param coord_system 坐标系类型（OpenCV或Math）
      * @return 返回角度（度）
      */
-    double calc_line_angle(
-        const cv::Point2d &start,
-        const cv::Point2d &end,
+    double calc_segment_angle(
+        const cv::Point2d &segment_start,
+        const cv::Point2d &segment_end,
         const CoordSystem coord_system)
     {
-        const double dx = end.x - start.x;
-        double dy = end.y - start.y;
+        const double dx = segment_end.x - segment_start.x;
+        double dy = segment_end.y - segment_start.y;
 
         if (coord_system == CoordSystem::Math)
         {
@@ -327,9 +327,9 @@ namespace detect_utils
         return angle;
     }
 
-    void test_calc_line_angle()
+    void test_calc_segment_angle()
     {
-        std::cout << "===================== test_calc_line_angle =========" << std::endl;
+        std::cout << "===================== test_calc_segment_angle =========" << std::endl;
 
         std::vector<cv::Point2d> line1 = {cv::Point2d(300, 300), cv::Point2d(500, 300)};
         std::vector<cv::Point2d> line2 = {cv::Point2d(300, 300), cv::Point2d(500, 100)};
@@ -340,36 +340,36 @@ namespace detect_utils
         std::vector<cv::Point2d> line7 = {cv::Point2d(300, 300), cv::Point2d(300, 500)};
         std::vector<cv::Point2d> line8 = {cv::Point2d(300, 300), cv::Point2d(500, 500)};
 
-        auto line1_cv_coord_angle = calc_line_angle(line1[0], line1[1]);
-        auto line1_math_coord_angle = calc_line_angle(line1[0], line1[1], CoordSystem::Math);
+        auto line1_cv_coord_angle = calc_segment_angle(line1[0], line1[1]);
+        auto line1_math_coord_angle = calc_segment_angle(line1[0], line1[1], CoordSystem::Math);
         std::cout << "line1 cv_coord_angle: " << line1_cv_coord_angle << ", math_coord_angle: " << line1_math_coord_angle << std::endl;
 
-        auto line2_cv_coord_angle = calc_line_angle(line2[0], line2[1]);
-        auto line2_math_coord_angle = calc_line_angle(line2[0], line2[1], CoordSystem::Math);
+        auto line2_cv_coord_angle = calc_segment_angle(line2[0], line2[1]);
+        auto line2_math_coord_angle = calc_segment_angle(line2[0], line2[1], CoordSystem::Math);
         std::cout << "line2 cv_coord_angle: " << line2_cv_coord_angle << ", math_coord_angle: " << line2_math_coord_angle << std::endl;
 
-        auto line3_cv_coord_angle = calc_line_angle(line3[0], line3[1]);
-        auto line3_math_coord_angle = calc_line_angle(line3[0], line3[1], CoordSystem::Math);
+        auto line3_cv_coord_angle = calc_segment_angle(line3[0], line3[1]);
+        auto line3_math_coord_angle = calc_segment_angle(line3[0], line3[1], CoordSystem::Math);
         std::cout << "line3 cv_coord_angle: " << line3_cv_coord_angle << ", math_coord_angle: " << line3_math_coord_angle << std::endl;
 
-        auto line4_cv_coord_angle = calc_line_angle(line4[0], line4[1]);
-        auto line4_math_coord_angle = calc_line_angle(line4[0], line4[1], CoordSystem::Math);
+        auto line4_cv_coord_angle = calc_segment_angle(line4[0], line4[1]);
+        auto line4_math_coord_angle = calc_segment_angle(line4[0], line4[1], CoordSystem::Math);
         std::cout << "line4 cv_coord_angle: " << line4_cv_coord_angle << ", math_coord_angle: " << line4_math_coord_angle << std::endl;
 
-        auto line5_cv_coord_angle = calc_line_angle(line5[0], line5[1]);
-        auto line5_math_coord_angle = calc_line_angle(line5[0], line5[1], CoordSystem::Math);
+        auto line5_cv_coord_angle = calc_segment_angle(line5[0], line5[1]);
+        auto line5_math_coord_angle = calc_segment_angle(line5[0], line5[1], CoordSystem::Math);
         std::cout << "line5 cv_coord_angle: " << line5_cv_coord_angle << ", math_coord_angle: " << line5_math_coord_angle << std::endl;
 
-        auto line6_cv_coord_angle = calc_line_angle(line6[0], line6[1]);
-        auto line6_math_coord_angle = calc_line_angle(line6[0], line6[1], CoordSystem::Math);
+        auto line6_cv_coord_angle = calc_segment_angle(line6[0], line6[1]);
+        auto line6_math_coord_angle = calc_segment_angle(line6[0], line6[1], CoordSystem::Math);
         std::cout << "line6 cv_coord_angle: " << line6_cv_coord_angle << ", math_coord_angle: " << line6_math_coord_angle << std::endl;
 
-        auto line7_cv_coord_angle = calc_line_angle(line7[0], line7[1]);
-        auto line7_math_coord_angle = calc_line_angle(line7[0], line7[1], CoordSystem::Math);
+        auto line7_cv_coord_angle = calc_segment_angle(line7[0], line7[1]);
+        auto line7_math_coord_angle = calc_segment_angle(line7[0], line7[1], CoordSystem::Math);
         std::cout << "line7 cv_coord_angle: " << line7_cv_coord_angle << ", math_coord_angle: " << line7_math_coord_angle << std::endl;
 
-        auto line8_cv_coord_angle = calc_line_angle(line8[0], line8[1]);
-        auto line8_math_coord_angle = calc_line_angle(line8[0], line8[1], CoordSystem::Math);
+        auto line8_cv_coord_angle = calc_segment_angle(line8[0], line8[1]);
+        auto line8_math_coord_angle = calc_segment_angle(line8[0], line8[1], CoordSystem::Math);
         std::cout << "line8 cv_coord_angle: " << line8_cv_coord_angle << ", math_coord_angle: " << line8_math_coord_angle << std::endl;
 
         cv::Mat test_img = cv::Mat::zeros(800, 1400, CV_8UC3);
@@ -408,13 +408,13 @@ namespace detect_utils
         cv::putText(test_img, "line8 cv_coord_angle: " + std::to_string(line8_cv_coord_angle) + ", math_coord_angle: " + std::to_string(line8_math_coord_angle),
                     cv::Point(600, 240), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(205, 116, 24), 1, cv::LINE_AA);
 
-        cv::imwrite("test_calc_line_angle.jpg", test_img);
-        std::cout << "Saved test_calc_line_angle.jpg" << std::endl;
+        cv::imwrite("test_calc_segment_angle.jpg", test_img);
+        std::cout << "Saved test_calc_segment_angle.jpg" << std::endl;
 
-        cv::imshow("test_calc_line_angle", test_img);
+        cv::imshow("test_calc_segment_angle", test_img);
         cv::waitKey(0);
 
-        std::cout << "===================== test_calc_line_angle =========" << std::endl
+        std::cout << "===================== test_calc_segment_angle =========" << std::endl
                   << std::endl;
     }
 }
