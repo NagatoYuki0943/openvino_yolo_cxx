@@ -459,53 +459,54 @@ int track_video(
                 cv::Point center2 = {(box2.left + box2.right) / 2, (box2.top + box2.bottom) / 2};
                 cv::line(frame, center1, center2, {0, 255, 0}, 2, cv::LINE_AA);
             }
-            if (detect_box_history.size() > 5)
-            {
-                auto &box1 = detect_box_history[0];
-                auto &box2 = detect_box_history[detect_box_history.size() - 1];
-                cv::Point center1 = {(box1.left + box1.right) / 2, (box1.top + box1.bottom) / 2};
-                cv::Point center2 = {(box2.left + box2.right) / 2, (box2.top + box2.bottom) / 2};
-                cv::line(frame, center1, center2, {255, 0, 0}, 2, cv::LINE_AA);
 
-                if (enable_line_detection)
+            if (!enable_line_detection)
+                continue; // 不检测是否相交
+
+            if (detect_box_history.size() < 5)
+                continue; // 不检测是否相交
+
+            auto &box1 = detect_box_history[0];
+            auto &box2 = detect_box_history[detect_box_history.size() - 1];
+            cv::Point center1 = {(box1.left + box1.right) / 2, (box1.top + box1.bottom) / 2};
+            cv::Point center2 = {(box2.left + box2.right) / 2, (box2.top + box2.bottom) / 2};
+            cv::line(frame, center1, center2, {255, 0, 0}, 2, cv::LINE_AA);
+
+            // 判断规矩是否和检测线相交
+            auto is_intersect = detect_utils::segments_intersect(center1, center2, detect_points[0], detect_points[1]);
+            // 相交且之前未交叉
+            if (is_intersect && !track_context.is_crossed)
+            {
+                track_context.is_crossed = true;
+                // 判断角度
+                auto angle = detect_utils::calc_line_angle(center1, center2, detect_utils::CoordSystem::Math);
+                if (angle >= 180)
                 {
-                    // 判断规矩是否和检测线相交
-                    auto is_intersect = detect_utils::segments_intersect(center1, center2, detect_points[0], detect_points[1]);
-                    // 相交且之前未交叉
-                    if (is_intersect && !track_context.is_crossed)
+                    if (in_direction == Global::Direction::DOWN)
                     {
-                        track_context.is_crossed = true;
-                        // 判断角度
-                        auto angle = detect_utils::calc_line_angle(center1, center2, detect_utils::CoordSystem::Math);
-                        if (angle >= 180)
-                        {
-                            if (in_direction == Global::Direction::DOWN)
-                            {
-                                in_number++;
-                            }
-                            else
-                            {
-                                out_number++;
-                            }
-                        }
-                        else
-                        {
-                            if (in_direction == Global::Direction::DOWN)
-                            {
-                                out_number++;
-                            }
-                            else
-                            {
-                                in_number++;
-                            }
-                        }
+                        in_number++;
                     }
-                    // 不相交且之前已交叉
-                    else if (!is_intersect && track_context.is_crossed)
+                    else
                     {
-                        track_context.is_crossed = false;
+                        out_number++;
                     }
                 }
+                else
+                {
+                    if (in_direction == Global::Direction::DOWN)
+                    {
+                        out_number++;
+                    }
+                    else
+                    {
+                        in_number++;
+                    }
+                }
+            }
+            // 不相交且之前已交叉
+            else if (!is_intersect && track_context.is_crossed)
+            {
+                track_context.is_crossed = false;
             }
         }
 
