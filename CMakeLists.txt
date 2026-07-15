@@ -72,7 +72,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/global_funcs.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/functions.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/point_polygon_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/line_test.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils/cv_math.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/BYTETracker.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/kalmanFilter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ByteTrack/lapjv.cpp

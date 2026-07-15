@@ -1,5 +1,5 @@
-#ifndef LINE_TEST_HPP
-#define LINE_TEST_HPP
+#ifndef CV_MATH_HPP
+#define CV_MATH_HPP
 #pragma once
 
 #include <opencv2/opencv.hpp>
@@ -62,4 +62,4 @@ namespace detect_utils
     void test_calc_line_angle();
 }
 
-#endif // LINE_TEST_HPP
+#endif // CV_MATH_HPP
