@@ -96,6 +96,22 @@ namespace detect_utils
         const CoordSystem coord_system = CoordSystem::OpenCV);
 
     void test_calc_segment_angle();
+
+    /**
+     * @brief 计算目标点绕原点旋转后的新坐标
+     * @param origin_point 旋转中心
+     * @param target_point 旋转前的目标点
+     * @param rotation_angle 旋转角度（度）；正角度在 OpenCV 坐标系中顺时针旋转，在 Math 坐标系中逆时针旋转
+     * @param coord_system 坐标系类型（OpenCV或Math）
+     * @return 返回旋转后的目标点坐标
+     */
+    cv::Point2d calc_rotated_point(
+        const cv::Point2d &origin_point,
+        const cv::Point2d &target_point,
+        double rotation_angle,
+        CoordSystem coord_system = CoordSystem::OpenCV);
+
+    void test_calc_rotated_point();
 }
 
 #endif // CV_MATH_HPP

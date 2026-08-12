@@ -417,4 +417,151 @@ namespace detect_utils
         std::cout << "===================== test_calc_segment_angle =========" << std::endl
                   << std::endl;
     }
+
+    /**
+     * @brief 计算目标点绕原点旋转后的新坐标
+     * @param origin_point 旋转中心
+     * @param target_point 旋转前的目标点
+     * @param rotation_angle 旋转角度（度）；正角度在 OpenCV 坐标系中顺时针旋转，在 Math 坐标系中逆时针旋转
+     * @param coord_system 坐标系类型（OpenCV或Math）
+     * @return 返回旋转后的目标点坐标
+     */
+    cv::Point2d calc_rotated_point(
+        const cv::Point2d &origin_point,
+        const cv::Point2d &target_point,
+        const double rotation_angle,
+        const CoordSystem coord_system)
+    {
+        const double dx = target_point.x - origin_point.x;
+        const double dy = target_point.y - origin_point.y;
+
+        // OpenCV 的 y 轴向下，因此相同的正角度在画面上表现为顺时针旋转。
+        // Math 模式沿用 calc_segment_angle 的约定，将角度取反后再在图像坐标中计算。
+        const double angle = coord_system == CoordSystem::Math
+                                 ? -rotation_angle
+                                 : rotation_angle;
+        const double radians = angle * CV_PI / 180.0;
+        const double cos_angle = std::cos(radians);
+        const double sin_angle = std::sin(radians);
+
+        double rotated_dx = dx * cos_angle - dy * sin_angle;
+        double rotated_dy = dx * sin_angle + dy * cos_angle;
+
+        // 清除 90、180 度等常见角度产生的极小浮点误差。
+        if (std::abs(rotated_dx) < eps)
+        {
+            rotated_dx = 0.0;
+        }
+        if (std::abs(rotated_dy) < eps)
+        {
+            rotated_dy = 0.0;
+        }
+
+        return {
+            origin_point.x + rotated_dx,
+            origin_point.y + rotated_dy};
+    }
+
+    void test_calc_rotated_point()
+    {
+        std::cout << "===================== test_calc_rotated_point =====================" << std::endl;
+
+        const cv::Point2d test_origin(100.0, 100.0);
+        const cv::Point2d test_target(200.0, 100.0);
+        const cv::Point2d opencv_90 = calc_rotated_point(
+            test_origin,
+            test_target,
+            90.0,
+            CoordSystem::OpenCV);
+        const cv::Point2d math_90 = calc_rotated_point(
+            test_origin,
+            test_target,
+            90.0,
+            CoordSystem::Math);
+        const cv::Point2d opencv_180 = calc_rotated_point(
+            test_origin,
+            test_target,
+            180.0,
+            CoordSystem::OpenCV);
+
+        const auto is_near = [](const cv::Point2d &actual, const cv::Point2d &expected)
+        {
+            return calc_point_distance(actual, expected) < 1e-9;
+        };
+
+        CV_Assert(is_near(opencv_90, cv::Point2d(100.0, 200.0)));
+        CV_Assert(is_near(math_90, cv::Point2d(100.0, 0.0)));
+        CV_Assert(is_near(opencv_180, cv::Point2d(0.0, 100.0)));
+        CV_Assert(std::abs(
+                      calc_point_distance(test_origin, test_target) -
+                      calc_point_distance(test_origin, opencv_90)) <
+                  1e-9);
+
+        std::cout << "Rotate center: (" << test_origin.x << ", " << test_origin.y << ")" << std::endl;
+        std::cout << "Rotate target: (" << test_target.x << ", " << test_target.y << ")" << std::endl;
+        std::cout << "OpenCV +90 degrees: (" << opencv_90.x << ", " << opencv_90.y << ")" << std::endl;
+        std::cout << "Math +90 degrees: (" << math_90.x << ", " << math_90.y << ")" << std::endl;
+        std::cout << "OpenCV +180 degrees: (" << opencv_180.x << ", " << opencv_180.y << ")" << std::endl;
+        std::cout << "Numeric checks passed." << std::endl;
+
+        cv::Mat test_img(700, 1200, CV_8UC3, cv::Scalar(30, 30, 30));
+        const std::vector<double> angles = {45.0, 90.0, 180.0, -90.0};
+        const std::vector<cv::Scalar> colors = {
+            cv::Scalar(0, 215, 255),
+            cv::Scalar(0, 255, 0),
+            cv::Scalar(255, 180, 0),
+            cv::Scalar(255, 0, 255)};
+
+        const auto draw_rotation_examples = [&test_img, &angles, &colors](
+                                                const cv::Point2d &origin,
+                                                const CoordSystem coord_system,
+                                                const std::string &title)
+        {
+            const cv::Point2d target(origin.x + 180.0, origin.y);
+
+            cv::line(test_img, cv::Point(origin.x - 220, origin.y), cv::Point(origin.x + 220, origin.y), cv::Scalar(90, 90, 90), 1);
+            cv::line(test_img, cv::Point(origin.x, origin.y - 220), cv::Point(origin.x, origin.y + 220), cv::Scalar(90, 90, 90), 1);
+            cv::circle(test_img, origin, 185, cv::Scalar(70, 70, 70), 1, cv::LINE_AA);
+
+            cv::line(test_img, origin, target, cv::Scalar(220, 220, 220), 3, cv::LINE_AA);
+            cv::circle(test_img, target, 6, cv::Scalar(220, 220, 220), cv::FILLED, cv::LINE_AA);
+            cv::putText(test_img, "start", target + cv::Point2d(8, -8), cv::FONT_HERSHEY_SIMPLEX, 0.55, cv::Scalar(220, 220, 220), 1, cv::LINE_AA);
+
+            for (size_t i = 0; i < angles.size(); ++i)
+            {
+                const cv::Point2d rotated_point = calc_rotated_point(
+                    origin,
+                    target,
+                    angles[i],
+                    coord_system);
+
+                cv::line(test_img, origin, rotated_point, colors[i], 2, cv::LINE_AA);
+                cv::circle(test_img, rotated_point, 6, colors[i], cv::FILLED, cv::LINE_AA);
+                cv::putText(
+                    test_img,
+                    std::to_string(static_cast<int>(angles[i])) + " deg",
+                    rotated_point + cv::Point2d(8, -8),
+                    cv::FONT_HERSHEY_SIMPLEX,
+                    0.55,
+                    colors[i],
+                    1,
+                    cv::LINE_AA);
+            }
+
+            cv::circle(test_img, origin, 7, cv::Scalar(0, 0, 255), cv::FILLED, cv::LINE_AA);
+            cv::putText(test_img, title, cv::Point(origin.x - 180, 55), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 255, 255), 2, cv::LINE_AA);
+        };
+
+        draw_rotation_examples(cv::Point2d(300.0, 350.0), CoordSystem::OpenCV, "OpenCV: positive is clockwise");
+        draw_rotation_examples(cv::Point2d(900.0, 350.0), CoordSystem::Math, "Math: positive is counter-clockwise");
+
+        cv::imwrite("test_calc_rotated_point.jpg", test_img);
+        std::cout << "Saved test_calc_rotated_point.jpg" << std::endl;
+
+        cv::imshow("test_calc_rotated_point", test_img);
+        cv::waitKey(0);
+
+        std::cout << "===================== test_calc_rotated_point =====================" << std::endl
+                  << std::endl;
+    }
 }
